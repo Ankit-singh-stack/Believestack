@@ -19,13 +19,20 @@ The API will not start if PostgreSQL or `JWT_SECRET` is unavailable. The health 
 
 ## Environment variables
 
+Use either:
+
+- `DATABASE_URL` for hosted PostgreSQL providers such as Render, Neon, Railway, or Supabase, or
 - `PGHOST`, `PGPORT`, `PGDATABASE`, `PGUSER`, and `PGPASSWORD`
+
+Additional settings:
+
 - `DB_SSL` (`true` when the PostgreSQL provider requires SSL)
 - `JWT_SECRET` (random secret, at least 32 characters)
 - `ADMIN_EMAIL`, `ADMIN_PASSWORD`, and optionally `ADMIN_NAME` (required by the seed command)
 - `CLIENT_ORIGIN` (frontend origin; comma-separated origins are supported)
 - `PORT` (defaults to `5000`)
 - `PG_POOL_MAX` (optional connection-pool size; defaults to `10`)
+- Optional mail settings: `CONTACT_EMAIL`, `MAIL_FROM`, `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`, `SMTP_USER`, `SMTP_PASS`
 
 ## API
 

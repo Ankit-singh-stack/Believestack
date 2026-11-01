@@ -1,6 +1,6 @@
 import nodemailer from 'nodemailer';
 
-const DEFAULT_CONTACT_EMAIL = process.env.CONTACT_EMAIL || 'Belivestack@1316';
+const DEFAULT_CONTACT_EMAIL = process.env.CONTACT_EMAIL || 'belivestack1316@gmail.com';
 const DEFAULT_MAIL_FROM = process.env.MAIL_FROM || DEFAULT_CONTACT_EMAIL;
 
 const transportConfig = {

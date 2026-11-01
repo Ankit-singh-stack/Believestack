@@ -14,6 +14,7 @@ import {
   Database,
   FileText,
   Gauge,
+  Globe2,
   Layers3,
   Mail,
   Menu,
@@ -34,6 +35,7 @@ const navLinks = [
   { to: '/about', label: 'About Us' },
   { to: '/services', label: 'Services' },
   { to: '/projects', label: 'Projects' },
+  { to: '/experience', label: 'Experience' },
   { to: '/process', label: 'Our Process' },
   { to: '/contact', label: 'Contact' },
 ];
@@ -163,6 +165,13 @@ const fallbackTestimonials = [
   { id: 3, name: 'Priya Menon', role: 'Product team lead', quote: 'Their approach helped us turn a rough idea into a polished app without losing focus on the real goal.' },
 ];
 
+const experienceStats = [
+  { value: '1000+', label: 'Happy Customers', icon: UserRound },
+  { value: '300+', label: 'Projects Completed', icon: Briefcase },
+  { value: '40+', label: 'Team Support', icon: Workflow },
+  { value: '3+', label: 'Global Countries', icon: Globe2 },
+];
+
 const fallbackFaqs = [
   { id: 1, question: 'Can you build custom project ideas?', answer: 'Yes. We work with your idea, scope, and constraints to propose a practical solution, architecture, and development plan.' },
   { id: 2, question: 'Do you support academic and final-year projects?', answer: 'Absolutely. We help students with implementation, documentation, and technical explanation for academic work.' },
@@ -174,7 +183,7 @@ const defaultSettings = {
   brandName: 'BELIEVE STACK',
   tagline: 'Your Ideas. Our Code. Infinite Possibilities.',
   phone: '9346718469,9121708489',
-  businessEmail: 'Belivestack@1316',
+  businessEmail: 'belivestack1316@gmail.com',
   whatsappNumber: '9346718469',
   socialLinks: {
     linkedin: 'https://www.linkedin.com/in/belive-stack-568a46447/',
@@ -193,7 +202,14 @@ function useSiteSettings() {
       .then((response) => {
         if (!active) return;
         const payload = response.data?.settings || defaultSettings;
-        setSettings({ ...defaultSettings, ...payload, socialLinks: { ...defaultSettings.socialLinks, ...(payload.socialLinks || {}) } });
+        const businessEmail = typeof payload.businessEmail === 'string' ? payload.businessEmail.trim() : defaultSettings.businessEmail;
+        const hasValidBusinessEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(businessEmail);
+        setSettings({
+          ...defaultSettings,
+          ...payload,
+          businessEmail: businessEmail && !hasValidBusinessEmail ? defaultSettings.businessEmail : businessEmail,
+          socialLinks: { ...defaultSettings.socialLinks, ...(payload.socialLinks || {}) },
+        });
         setSettingsError('');
       })
       .catch(() => {
@@ -224,6 +240,7 @@ function App() {
             <Route path="/about" element={<AboutPage />} />
             <Route path="/services" element={<ServicesPage />} />
             <Route path="/projects" element={<ProjectsPage />} />
+            <Route path="/experience" element={<ExperiencePage />} />
             <Route path="/projects/:slug" element={<ProjectDetailPage />} />
             <Route path="/process" element={<ProcessPage />} />
             <Route path="/contact" element={<ContactPage settings={settings} />} />
@@ -651,6 +668,73 @@ function ProjectsPage() {
   );
 }
 
+function ExperiencePage() {
+  const [projects, setProjects] = useState(fallbackProjects.slice(0, 3));
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let active = true;
+    api.get('/api/projects?limit=3')
+      .then((response) => {
+        if (!active) return;
+        const projectList = response.data.projects;
+        setProjects(Array.isArray(projectList) && projectList.length ? projectList : fallbackProjects.slice(0, 3));
+      })
+      .catch((requestError) => {
+        if (!active) return;
+        setProjects(fallbackProjects.slice(0, 3));
+        setError(requestError.response?.data?.message || 'Unable to load recent projects. Showing preview examples instead.');
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+
+    return () => { active = false; };
+  }, []);
+
+  return (
+    <section className="page-shell experience-page">
+      <div className="container">
+        <SectionHeading
+          eyebrow="Our experience"
+          title="Ideas delivered with experience."
+          description="A snapshot of the people, projects, and teams behind BELIEVE STACK. We turn ambitious ideas into useful digital products."
+        />
+        <div className="experience-actions">
+          <Link to="/projects" className="btn btn-primary">Explore our projects <ArrowRight size={18} /></Link>
+          <Link to="/contact" className="btn btn-secondary">Start your project</Link>
+        </div>
+        <section className="experience-stats" aria-label="BELIEVE STACK at a glance">
+          {experienceStats.map(({ value, label, icon: Icon }) => (
+            <article className="experience-stat" key={label}>
+              <div className="experience-stat-icon"><Icon size={22} aria-hidden="true" /></div>
+              <strong>{value}</strong>
+              <span>{label}</span>
+            </article>
+          ))}
+        </section>
+        <section className="experience-projects" aria-label="Selected project examples">
+          <SectionHeading
+            eyebrow="Selected work"
+            title="A few ways we bring ideas to life."
+            description="Explore recent projects and examples of the solutions our team can build around your goals."
+          />
+          <div className="project-grid">
+            {projects.map((project) => <ProjectCard key={project.slug} project={project} />)}
+          </div>
+          {loading && <p role="status">Loading projects...</p>}
+          {error && <p className="form-message error" role="alert">{error}</p>}
+          {!loading && !error && !projects.length && <p className="empty-state">Projects are being updated. <Link to="/contact">Tell us what you want to build.</Link></p>}
+          <div className="section-action">
+            <Link to="/projects" className="btn btn-secondary">View all projects <ArrowRight size={18} /></Link>
+          </div>
+        </section>
+      </div>
+    </section>
+  );
+}
+
 function serviceIcon(title) {
   const normalizedTitle = title.toLowerCase();
   if (normalizedTitle.includes('ai')) return BrainCircuit;
@@ -960,6 +1044,7 @@ function Footer({ settings }) {
             <li><Link to="/about">About us</Link></li>
             <li><Link to="/services">Services</Link></li>
             <li><Link to="/projects">Projects</Link></li>
+            <li><Link to="/experience">Experience</Link></li>
             <li><Link to="/process">Our process</Link></li>
             <li><Link to="/contact">Contact</Link></li>
           </ul>
@@ -1025,6 +1110,7 @@ function RouteScrollReset() {
       '/about': 'About us',
       '/services': 'Our services',
       '/projects': 'Project showcase',
+      '/experience': 'Our experience',
       '/process': 'Our process',
       '/contact': 'Start a project',
       '/privacy': 'Privacy policy',

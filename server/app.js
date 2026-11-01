@@ -10,10 +10,13 @@ import adminRoutes from './src/routes/admin.js';
 dotenv.config();
 
 const app = express();
-const allowedOrigins = (process.env.CLIENT_ORIGIN || 'http://localhost:5173')
+const configuredOrigins = (process.env.CLIENT_ORIGIN || 'http://localhost:5173')
   .split(',')
   .map((origin) => origin.trim())
   .filter(Boolean);
+const allowedOrigins = process.env.NODE_ENV === 'production'
+  ? configuredOrigins
+  : [...new Set([...configuredOrigins, 'http://localhost:5173', 'http://127.0.0.1:5173'])];
 
 app.use(helmet({
   crossOriginResourcePolicy: false,

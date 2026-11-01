@@ -115,7 +115,7 @@ const settings = {
   tagline: 'Your Ideas. Our Code. Infinite Possibilities.',
   businessName: 'BELIEVE STACK',
   phone: '9346718469,9121708489',
-  businessEmail: 'Belivestack@1316',
+  businessEmail: 'belivestack1316@gmail.com',
   whatsappNumber: '9346718469',
   socialLinks: { linkedin: 'https://www.linkedin.com/in/belive-stack-568a46447/', github: 'https://github.com', instagram: 'https://instagram.com' },
   businessHours: 'Mon - Fri | 9:00 AM - 6:00 PM',
@@ -197,6 +197,15 @@ const seed = async () => {
         [key, typeof value === 'string' ? value : serialized, serialized],
       );
     }
+    operation = 'updating invalid business email setting';
+    await client.query(
+      `UPDATE site_settings
+       SET value_text = $1, value_json = $2::jsonb
+       WHERE key_name = 'businessEmail'
+         AND COALESCE(value_text, '') <> ''
+         AND value_text NOT LIKE '%_@_%._%'`,
+      [settings.businessEmail, JSON.stringify(settings.businessEmail)],
+    );
     operation = 'committing seed transaction';
     await client.query('COMMIT');
   } catch (error) {
