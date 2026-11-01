@@ -1,6 +1,6 @@
 import bcrypt from 'bcryptjs';
 import dotenv from 'dotenv';
-import pool, { assertDatabaseConfig, closePool } from '../src/config/db.js';
+import { getCollection, assertDatabaseConfig, closeDatabase, testConnection } from '../src/config/db.js';
 
 dotenv.config();
 
@@ -23,7 +23,7 @@ const projects = [
     problemStatement: 'Teams lacked a unified way to interpret analytics and understand the most important changes in their platform activity.',
     proposedSolution: 'We created a unified dashboard that blends data visualization, filtering, reporting, and AI-generated narrative insights.',
     features: ['Interactive charts', 'Data visualization', 'AI-generated insights', 'Reporting workflows', 'Filtering and comparisons'],
-    stack: ['React', 'Node.js', 'Express', 'PostgreSQL', 'AI API'],
+    stack: ['React', 'Node.js', 'Express', 'MongoDB', 'AI API'],
     thumbnail: '/assets/project-1.svg',
   },
   {
@@ -35,7 +35,7 @@ const projects = [
     problemStatement: 'The client needed a way to help users interact naturally with a digital assistant without adding operational overhead.',
     proposedSolution: 'We designed a responsive chatbot app with secure access, persistence, and a robust AI integration layer.',
     features: ['Chat interface', 'Conversation history', 'User authentication', 'AI API integration', 'Responsive design'],
-    stack: ['React', 'Node.js', 'Express', 'PostgreSQL'],
+    stack: ['React', 'Node.js', 'Express', 'MongoDB'],
     thumbnail: '/assets/project-2.svg',
   },
   {
@@ -47,7 +47,7 @@ const projects = [
     problemStatement: 'Institutions needed a cleaner way to manage records and analyze academic activity without relying on disconnected spreadsheets.',
     proposedSolution: 'We built a database-backed admin dashboard with automated reports and role-aware flows.',
     features: ['Student records', 'Attendance tracking', 'Search and filters', 'Reports', 'Administrative dashboard'],
-    stack: ['React', 'Express', 'Node.js', 'PostgreSQL'],
+    stack: ['React', 'Express', 'Node.js', 'MongoDB'],
     thumbnail: '/assets/project-3.svg',
   },
 ];
@@ -55,9 +55,9 @@ const projects = [
 const services = [
   {
     title: 'Full-Stack Web Development',
-    shortDescription: 'Custom applications built with React, Node.js, Express, and PostgreSQL.',
+    shortDescription: 'Custom applications built with React, Node.js, Express, and MongoDB.',
     description: 'From responsive frontend interfaces to secure backends and database-driven workflows.',
-    features: ['React frontend', 'Express API', 'PostgreSQL', 'Auth & roles', 'Admin dashboards'],
+    features: ['React frontend', 'Express API', 'MongoDB', 'Auth & roles', 'Admin dashboards'],
     startingPrice: 699,
     deliveryEstimate: '2 - 6 weeks',
   },
@@ -129,90 +129,90 @@ const seed = async () => {
   if (!email || !password) throw new Error('Set ADMIN_EMAIL and ADMIN_PASSWORD in server/.env before seeding the admin account.');
   if (password.length < 12) throw new Error('ADMIN_PASSWORD must contain at least 12 characters.');
 
-  const client = await pool.connect();
+  await testConnection();
   let operation = 'creating admin account';
   try {
-    await client.query('BEGIN');
     const passwordHash = await bcrypt.hash(password, 12);
-    await client.query(
-      `INSERT INTO admins (email, password_hash, name)
-       VALUES ($1, $2, $3)
-       ON CONFLICT (email) DO UPDATE SET password_hash = EXCLUDED.password_hash, name = EXCLUDED.name, updated_at = CURRENT_TIMESTAMP`,
-      [email.trim().toLowerCase(), passwordHash, name.trim()],
+    const admins = getCollection('admins');
+    await admins.updateOne(
+      { email: email.trim().toLowerCase() },
+      { $set: { passwordHash, name: name.trim(), updatedAt: new Date() }, $setOnInsert: { createdAt: new Date() } },
+      { upsert: true },
     );
 
     const categoryIds = new Map();
+    const categoriesCollection = getCollection('project_categories');
     for (const [categoryName, slug] of categories) {
       operation = `seeding category "${categoryName}"`;
-      const result = await client.query(
-        `INSERT INTO project_categories (name, slug) VALUES ($1, $2)
-         ON CONFLICT (slug) DO UPDATE SET name = EXCLUDED.name, updated_at = CURRENT_TIMESTAMP
-         RETURNING id`,
-        [categoryName, slug],
+      await categoriesCollection.updateOne(
+        { slug },
+        { $set: { name: categoryName, updatedAt: new Date() }, $setOnInsert: { slug, createdAt: new Date() } },
+        { upsert: true },
       );
-      categoryIds.set(categoryName, result.rows[0].id);
+      categoryIds.set(categoryName, (await categoriesCollection.findOne({ slug }))._id);
     }
 
     for (const project of projects) {
       operation = `seeding project "${project.slug}"`;
-      await client.query(
-        `INSERT INTO projects
-          (slug, title, short_description, description, problem_statement, proposed_solution, thumbnail, status, category_id, features, stack)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, 'published', $8, $9::jsonb, $10::jsonb)
-         ON CONFLICT (slug) DO NOTHING`,
-        [
-          project.slug, project.title, project.shortDescription, project.description, project.problemStatement,
-          project.proposedSolution, project.thumbnail, categoryIds.get(project.category),
-          JSON.stringify(project.features), JSON.stringify(project.stack),
-        ],
+      await getCollection('projects').updateOne(
+        { slug: project.slug },
+        { $setOnInsert: {
+          ...project,
+          status: 'published',
+          categoryId: categoryIds.get(project.category),
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        } },
+        { upsert: true },
       );
     }
 
     for (const service of services) {
       operation = `seeding service "${service.title}"`;
-      await client.query(
-        `INSERT INTO services (title, short_description, description, features, starting_price, delivery_estimate)
-         SELECT $1::varchar(180), $2, $3, $4::jsonb, $5, $6
-         WHERE NOT EXISTS (SELECT 1 FROM services WHERE title = $1::varchar(180))`,
-        [service.title, service.shortDescription, service.description, JSON.stringify(service.features), service.startingPrice, service.deliveryEstimate],
+      await getCollection('services').updateOne(
+        { title: service.title },
+        { $setOnInsert: {
+          title: service.title,
+          shortDescription: service.shortDescription,
+          description: service.description,
+          features: service.features,
+          startingPrice: service.startingPrice,
+          deliveryEstimate: service.deliveryEstimate,
+          visible: true,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        } },
+        { upsert: true },
       );
     }
 
     for (const [index, [question, answer]] of faqs.entries()) {
       operation = `seeding FAQ ${index + 1}`;
-      await client.query(
-        `INSERT INTO faqs (question, answer, sort_order)
-         SELECT $1, $2, $3 WHERE NOT EXISTS (SELECT 1 FROM faqs WHERE question = $1)`,
-        [question, answer, index],
+      await getCollection('faqs').updateOne(
+        { question },
+        { $setOnInsert: { question, answer, sortOrder: index, visible: true, createdAt: new Date(), updatedAt: new Date() } },
+        { upsert: true },
       );
     }
 
     for (const [key, value] of Object.entries(settings)) {
       operation = `seeding setting "${key}"`;
-      const serialized = JSON.stringify(value);
-      await client.query(
-        `INSERT INTO site_settings (key_name, value_text, value_json)
-         VALUES ($1, $2, $3::jsonb)
-         ON CONFLICT (key_name) DO NOTHING`,
-        [key, typeof value === 'string' ? value : serialized, serialized],
+      await getCollection('site_settings').updateOne(
+        { key },
+        { $setOnInsert: { key, value, updatedAt: new Date() } },
+        { upsert: true },
       );
     }
     operation = 'updating invalid business email setting';
-    await client.query(
-      `UPDATE site_settings
-       SET value_text = $1, value_json = $2::jsonb
-       WHERE key_name = 'businessEmail'
-         AND COALESCE(value_text, '') <> ''
-         AND value_text NOT LIKE '%_@_%._%'`,
-      [settings.businessEmail, JSON.stringify(settings.businessEmail)],
-    );
-    operation = 'committing seed transaction';
-    await client.query('COMMIT');
+    const emailSetting = await getCollection('site_settings').findOne({ key: 'businessEmail' });
+    if (emailSetting && typeof emailSetting.value === 'string' && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailSetting.value)) {
+      await getCollection('site_settings').updateOne(
+        { key: 'businessEmail' },
+        { $set: { value: settings.businessEmail, updatedAt: new Date() } },
+      );
+    }
   } catch (error) {
-    await client.query('ROLLBACK');
     throw new Error(`Failed while ${operation}: ${error.message}`, { cause: error });
-  } finally {
-    client.release();
   }
 };
 
@@ -223,5 +223,5 @@ try {
   console.error(`Database seed failed: ${error.message}`);
   process.exitCode = 1;
 } finally {
-  await closePool();
+  await closeDatabase();
 }

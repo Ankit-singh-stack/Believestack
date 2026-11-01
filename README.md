@@ -3,7 +3,7 @@
 BELIEVE STACK is a full-stack website for student and founder project development, built with:
 
 - Frontend: React + Vite
-- Backend: Node.js + Express + PostgreSQL
+- Backend: Node.js + Express + MongoDB
 
 ## Project structure
 
@@ -16,9 +16,12 @@ BELIEVE STACK is a full-stack website for student and founder project developmen
    `cd client && npm install`
 2. Install backend dependencies:
    `cd server && npm install`
-3. Start the frontend:
+3. Copy `server/.env.example` to `server/.env` and configure MongoDB and the admin account.
+4. Initialize MongoDB indexes and seed starter content:
+   `cd server && npm run db && npm run seed`
+5. Start the frontend:
    `cd client && npm run dev`
-4. Start the backend:
+6. Start the backend:
    `cd server && npm run dev`
 
 ## Frontend deployment (Vercel)
@@ -43,24 +46,19 @@ For local mobile testing, start the frontend with `npm run dev -- --host 0.0.0.0
 3. Use the start command:
    `npm install && npm run db && npm run seed && npm start`
 4. Add environment variables:
-   - `DATABASE_URL=postgres://user:password@host:5432/database`
+   - `MONGODB_URI=mongodb+srv://<user>:<password>@<cluster>/<database>`
+   - `MONGODB_DB=believestack`
    - `JWT_SECRET=your-long-random-secret`
    - `CLIENT_ORIGIN=https://your-vercel-app.vercel.app`
    - `ADMIN_EMAIL=admin@believestack.dev`
    - `ADMIN_PASSWORD=StrongPassword123!`
    - `PORT=10000`
    - Optional mail values: `CONTACT_EMAIL`, `MAIL_FROM`, `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`
-5. If the provider supports SSL-required Postgres, enable `DB_SSL=true`.
-6. Deploy.
+5. Deploy.
 
-## Hosted PostgreSQL connection
+## MongoDB connection
 
-The backend accepts either:
-
-- a single `DATABASE_URL` value, or
-- individual connection settings: `PGHOST`, `PGPORT`, `PGDATABASE`, `PGUSER`, `PGPASSWORD`
-
-This makes it compatible with hosted databases such as Render Postgres, Neon, Railway, and Supabase.
+Set `MONGODB_URI` to a MongoDB connection string for a local instance or hosted cluster. `MONGODB_DB` optionally overrides the database name and defaults to `believestack`.
 
 ## Notes
 

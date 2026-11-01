@@ -61,14 +61,8 @@ app.use((err, req, res, next) => {
   if (err.type === 'entity.parse.failed') {
     return res.status(400).json({ success: false, message: 'Request body contains invalid JSON.' });
   }
-  if (err.code === '23505') {
+  if (err.code === 11000) {
     return res.status(409).json({ success: false, message: 'A record with that value already exists.' });
-  }
-  if (err.code === '23503') {
-    return res.status(409).json({ success: false, message: 'This record is still referenced by another record.' });
-  }
-  if (err.code === '23514') {
-    return res.status(400).json({ success: false, message: 'The supplied data violates a database constraint.' });
   }
   if (err.status && err.status < 500) {
     return res.status(err.status).json({ success: false, message: err.message, ...(err.details ? { details: err.details } : {}) });

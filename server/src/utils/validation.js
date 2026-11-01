@@ -1,3 +1,5 @@
+import { ObjectId } from 'mongodb';
+
 export const httpError = (message, status = 400, details = undefined) => {
   const error = new Error(message);
   error.status = status;
@@ -36,9 +38,10 @@ export const readBoolean = (value, field, defaultValue = false) => {
 };
 
 export const readId = (value, field = 'id') => {
-  const id = Number(value);
-  if (!Number.isSafeInteger(id) || id < 1) throw httpError(`${field} must be a positive integer.`);
-  return id;
+  if (typeof value !== 'string' || !ObjectId.isValid(value) || new ObjectId(value).toHexString() !== value.toLowerCase()) {
+    throw httpError(`${field} must be a valid identifier.`);
+  }
+  return new ObjectId(value);
 };
 
 export const readPagination = (query) => {

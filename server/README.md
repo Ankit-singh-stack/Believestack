@@ -2,8 +2,8 @@
 
 ## Database setup
 
-1. Copy `.env.example` to `.env` and set `PGHOST`, `PGPORT`, `PGDATABASE`, `PGUSER`, `PGPASSWORD`, `DB_SSL`, a random `JWT_SECRET` (at least 32 characters), and the admin account email/password. Use a unique admin password with at least 12 characters.
-2. Create the database named by `PGDATABASE` using your PostgreSQL administrator account.
+1. Copy `.env.example` to `.env` and set `MONGODB_URI`, optionally `MONGODB_DB`, a random `JWT_SECRET` (at least 32 characters), and the admin account email/password. Use a unique admin password with at least 12 characters.
+2. Ensure the MongoDB server or hosted cluster in `MONGODB_URI` is reachable.
 3. From this directory, run:
 
    ```powershell
@@ -13,25 +13,18 @@
    npm run dev
    ```
 
-`db:migrate` initializes or upgrades tables from `database/schema.sql`. `seed` creates/updates the admin using the hashed `ADMIN_PASSWORD` and inserts initial public content only when it is absent. Neither script stores a plaintext admin password.
+`db:migrate` verifies the MongoDB connection and initializes required indexes. `seed` creates/updates the admin using the hashed `ADMIN_PASSWORD` and inserts initial public content only when it is absent. Neither script stores a plaintext admin password.
 
-The API will not start if PostgreSQL or `JWT_SECRET` is unavailable. The health endpoint checks the live database connection.
+The API will not start if MongoDB or `JWT_SECRET` is unavailable. The health endpoint checks the live database connection.
 
 ## Environment variables
 
-Use either:
-
-- `DATABASE_URL` for hosted PostgreSQL providers such as Render, Neon, Railway, or Supabase, or
-- `PGHOST`, `PGPORT`, `PGDATABASE`, `PGUSER`, and `PGPASSWORD`
-
-Additional settings:
-
-- `DB_SSL` (`true` when the PostgreSQL provider requires SSL)
+- `MONGODB_URI` (required; local or hosted MongoDB connection string)
+- `MONGODB_DB` (optional database name; defaults to `believestack`)
 - `JWT_SECRET` (random secret, at least 32 characters)
 - `ADMIN_EMAIL`, `ADMIN_PASSWORD`, and optionally `ADMIN_NAME` (required by the seed command)
 - `CLIENT_ORIGIN` (frontend origin; comma-separated origins are supported)
 - `PORT` (defaults to `5000`)
-- `PG_POOL_MAX` (optional connection-pool size; defaults to `10`)
 - Optional mail settings: `CONTACT_EMAIL`, `MAIL_FROM`, `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`, `SMTP_USER`, `SMTP_PASS`
 
 ## API
@@ -55,4 +48,4 @@ Collection endpoints support `page`, `limit` (maximum 100), and `search`; enquir
 
 ## Tests and frontend
 
-Run backend tests with `npm test`. The PostgreSQL API integration test requires a migrated, seeded database and the environment values above. From `client`, run `npm install`, `npm run dev`, `npm run build`, or `npm run lint`.
+Run backend tests with `npm test`. The MongoDB API integration test requires a reachable MongoDB instance, a seeded admin, and the environment values above. From `client`, run `npm install`, `npm run dev`, `npm run build`, or `npm run lint`.

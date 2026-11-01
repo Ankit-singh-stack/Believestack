@@ -14,18 +14,10 @@ services:
         value: production
       - key: PORT
         value: 10000
-      - key: PGHOST
+      - key: MONGODB_URI
         sync: false
-      - key: PGPORT
-        value: 5432
-      - key: PGDATABASE
-        sync: false
-      - key: PGUSER
-        sync: false
-      - key: PGPASSWORD
-        sync: false
-      - key: DB_SSL
-        value: true
+      - key: MONGODB_DB
+        value: believestack
       - key: JWT_SECRET
         sync: false
       - key: CLIENT_ORIGIN

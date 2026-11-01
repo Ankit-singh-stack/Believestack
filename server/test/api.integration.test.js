@@ -1,22 +1,17 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { ObjectId } from 'mongodb';
 import app from '../app.js';
-import pool, { assertDatabaseConfig, closePool, testConnection } from '../src/config/db.js';
+import { getCollection, assertDatabaseConfig, closeDatabase, testConnection } from '../src/config/db.js';
 
-const hasDatabaseConfiguration = Boolean(
-  (process.env.PGHOST || process.env.DB_HOST)
-  && (process.env.PGPORT || process.env.DB_PORT)
-  && (process.env.PGDATABASE || process.env.DB_NAME)
-  && (process.env.PGUSER || process.env.DB_USER)
-  && (process.env.PGPASSWORD || process.env.DB_PASSWORD),
-);
+const hasDatabaseConfiguration = Boolean(process.env.MONGODB_URI);
 const integrationEnabled = hasDatabaseConfiguration
   && Boolean(process.env.ADMIN_EMAIL && process.env.ADMIN_PASSWORD && process.env.JWT_SECRET);
 const integrationSkipReason = hasDatabaseConfiguration
   ? 'Set ADMIN_EMAIL, ADMIN_PASSWORD and JWT_SECRET in server/.env to run API integration tests.'
-  : 'Set PostgreSQL connection values, ADMIN_EMAIL, ADMIN_PASSWORD and JWT_SECRET in server/.env to run API integration tests.';
+  : 'Set MONGODB_URI, ADMIN_EMAIL, ADMIN_PASSWORD and JWT_SECRET in server/.env to run API integration tests.';
 
-test('PostgreSQL-backed API CRUD and persistence', { skip: integrationEnabled ? false : integrationSkipReason }, async () => {
+test('MongoDB-backed API CRUD and persistence', { skip: integrationEnabled ? false : integrationSkipReason }, async () => {
   const server = app.listen(0);
   const address = await new Promise((resolve, reject) => {
     server.once('listening', () => resolve(server.address()));
@@ -89,14 +84,14 @@ test('PostgreSQL-backed API CRUD and persistence', { skip: integrationEnabled ? 
         status: 'published',
         shortDescription: 'Integration test project.',
         features: ['search'],
-        stack: ['React', 'PostgreSQL'],
+        stack: ['React', 'MongoDB'],
       },
     });
     assert.equal(project.response.status, 201, project.payload.message);
     projectId = project.payload.project.id;
     assert.equal((await request(`/api/admin/projects/${projectId}`)).payload.project.id, projectId);
-    const persistedProject = await pool.query('SELECT title FROM projects WHERE id = $1', [projectId]);
-    assert.equal(persistedProject.rows[0].title, 'API Integration Project');
+    const persistedProject = await getCollection('projects').findOne({ _id: new ObjectId(projectId) });
+    assert.equal(persistedProject.title, 'API Integration Project');
     assert.ok((await request('/api/projects?category=api-integration-category')).payload.projects.some((item) => item.id === projectId));
     const projectUpdate = await request(`/api/admin/projects/${projectId}`, {
       method: 'PATCH',
@@ -149,8 +144,8 @@ test('PostgreSQL-backed API CRUD and persistence', { skip: integrationEnabled ? 
       body: { tagline: 'Database integration test tagline' },
     });
     assert.equal(settingsUpdate.payload.settings.tagline, 'Database integration test tagline');
-    const persistedSettings = await pool.query("SELECT value_json FROM site_settings WHERE key_name = 'tagline'");
-    assert.equal(persistedSettings.rows[0].value_json, 'Database integration test tagline');
+    const persistedSettings = await getCollection('site_settings').findOne({ key: 'tagline' });
+    assert.equal(persistedSettings.value, 'Database integration test tagline');
 
     const createdEnquiry = await request('/api/enquiries', {
       method: 'POST',
@@ -192,22 +187,19 @@ test('PostgreSQL-backed API CRUD and persistence', { skip: integrationEnabled ? 
       assert.equal(deleted.payload[key].id, id);
     }
 
-    assert.equal((await pool.query('SELECT COUNT(*)::int AS total FROM enquiries WHERE id = $1', [enquiryId])).rows[0].total, 0);
-    assert.equal((await pool.query('SELECT COUNT(*)::int AS total FROM projects WHERE id = $1', [projectId])).rows[0].total, 0);
+    assert.equal(await getCollection('enquiries').countDocuments({ _id: new ObjectId(enquiryId) }), 0);
+    assert.equal(await getCollection('projects').countDocuments({ _id: new ObjectId(projectId) }), 0);
   } finally {
     if (previousTagline !== undefined) {
-      await pool.query(
-        `UPDATE site_settings SET value_text = $1, value_json = $2::jsonb WHERE key_name = 'tagline'`,
-        [previousTagline, JSON.stringify(previousTagline)],
-      );
+      await getCollection('site_settings').updateOne({ key: 'tagline' }, { $set: { value: previousTagline } });
     }
-    if (enquiryId) await pool.query('DELETE FROM enquiries WHERE id = $1', [enquiryId]);
-    if (testimonialId) await pool.query('DELETE FROM testimonials WHERE id = $1', [testimonialId]);
-    if (faqId) await pool.query('DELETE FROM faqs WHERE id = $1', [faqId]);
-    if (serviceId) await pool.query('DELETE FROM services WHERE id = $1', [serviceId]);
-    if (projectId) await pool.query('DELETE FROM projects WHERE id = $1', [projectId]);
-    if (categoryId) await pool.query('DELETE FROM project_categories WHERE id = $1', [categoryId]);
+    if (enquiryId) await getCollection('enquiries').deleteOne({ _id: new ObjectId(enquiryId) });
+    if (testimonialId) await getCollection('testimonials').deleteOne({ _id: new ObjectId(testimonialId) });
+    if (faqId) await getCollection('faqs').deleteOne({ _id: new ObjectId(faqId) });
+    if (serviceId) await getCollection('services').deleteOne({ _id: new ObjectId(serviceId) });
+    if (projectId) await getCollection('projects').deleteOne({ _id: new ObjectId(projectId) });
+    if (categoryId) await getCollection('project_categories').deleteOne({ _id: new ObjectId(categoryId) });
     await new Promise((resolve, reject) => server.close((closeError) => closeError ? reject(closeError) : resolve()));
-    await closePool();
+    await closeDatabase();
   }
 });

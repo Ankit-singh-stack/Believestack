@@ -11,8 +11,9 @@ test('readList trims, removes empty values, and deduplicates entries', () => {
 });
 
 test('readId rejects invalid and injected identifiers', () => {
-  assert.throws(() => readId('1; DROP TABLE admins'), /positive integer/);
-  assert.equal(readId('24'), 24);
+  assert.throws(() => readId('1; DROP TABLE admins'), /valid identifier/);
+  assert.throws(() => readId('24'), /valid identifier/);
+  assert.equal(readId('507f1f77bcf86cd799439011').toString(), '507f1f77bcf86cd799439011');
 });
 
 test('readPagination clamps unsafe page sizes', () => {

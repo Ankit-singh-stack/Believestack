@@ -1,5 +1,5 @@
 import app from './app.js';
-import { assertDatabaseConfig, closePool, testConnection } from './src/config/db.js';
+import { assertDatabaseConfig, closeDatabase, testConnection } from './src/config/db.js';
 
 const port = Number(process.env.PORT || 5000);
 
@@ -15,7 +15,7 @@ const start = async () => {
 
   const shutdown = () => {
     server.close(async () => {
-      await closePool();
+      await closeDatabase();
       process.exit(0);
     });
   };
@@ -25,6 +25,6 @@ const start = async () => {
 
 start().catch(async (error) => {
   console.error(`BELIEVE STACK server could not start: ${error.message}`);
-  await closePool();
+  await closeDatabase();
   process.exitCode = 1;
 });

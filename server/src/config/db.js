@@ -1,4 +1,4 @@
-import pg from 'pg';
+import { MongoClient } from 'mongodb';
 import dotenv from 'dotenv';
 import { fileURLToPath } from 'node:url';
 import { dirname, resolve } from 'node:path';
@@ -6,50 +6,55 @@ import { dirname, resolve } from 'node:path';
 const serverDirectory = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 dotenv.config({ path: resolve(serverDirectory, '.env') });
 
-const { Pool } = pg;
-
-const databaseConfig = {
-  DATABASE_URL: process.env.DATABASE_URL,
-  PGHOST: process.env.PGHOST || process.env.DB_HOST,
-  PGPORT: process.env.PGPORT || process.env.DB_PORT,
-  PGDATABASE: process.env.PGDATABASE || process.env.DB_NAME,
-  PGUSER: process.env.PGUSER || process.env.DB_USER,
-  PGPASSWORD: process.env.PGPASSWORD || process.env.DB_PASSWORD,
-};
-
-const connectionConfig = databaseConfig.DATABASE_URL
-  ? { connectionString: databaseConfig.DATABASE_URL }
-  : {
-    host: databaseConfig.PGHOST,
-    port: databaseConfig.PGPORT ? Number(databaseConfig.PGPORT) : undefined,
-    database: databaseConfig.PGDATABASE,
-    user: databaseConfig.PGUSER,
-    password: databaseConfig.PGPASSWORD,
-  };
+const uri = process.env.MONGODB_URI;
+const databaseName = process.env.MONGODB_DB || 'believestack';
+let client;
+let database;
+let connectionPromise;
 
 export const assertDatabaseConfig = () => {
-  if (databaseConfig.DATABASE_URL) return;
-
-  const missingFields = ['PGHOST', 'PGPORT', 'PGDATABASE', 'PGUSER', 'PGPASSWORD']
-    .filter((key) => !databaseConfig[key]);
-  if (missingFields.length > 0) {
-    throw new Error(`Database configuration is missing: ${missingFields.join(', ')}. Set these values in server/.env or use DATABASE_URL.`);
-  }
+  if (!uri) throw new Error('Database configuration is missing: MONGODB_URI. Set it in server/.env.');
 };
 
-const pool = new Pool({
-  ...connectionConfig,
-  max: Number(process.env.PG_POOL_MAX || 10),
-  idleTimeoutMillis: 30_000,
-  connectionTimeoutMillis: 5_000,
-  ssl: process.env.DB_SSL === 'true' || Boolean(databaseConfig.DATABASE_URL) ? { rejectUnauthorized: false } : false,
-});
+export const connectDatabase = async () => {
+  assertDatabaseConfig();
+  if (database) return database;
+  if (!connectionPromise) {
+    connectionPromise = (async () => {
+      client = new MongoClient(uri, { serverSelectionTimeoutMS: 5000 });
+      await client.connect();
+      database = client.db(databaseName);
+      await database.command({ ping: 1 });
+      await Promise.all([
+        database.collection('admins').createIndex({ email: 1 }, { unique: true }),
+        database.collection('project_categories').createIndex({ name: 1 }, { unique: true }),
+        database.collection('project_categories').createIndex({ slug: 1 }, { unique: true }),
+        database.collection('projects').createIndex({ slug: 1 }, { unique: true }),
+        database.collection('site_settings').createIndex({ key: 1 }, { unique: true }),
+      ]);
+      return database;
+    })().catch((error) => {
+      client = undefined;
+      database = undefined;
+      connectionPromise = undefined;
+      throw error;
+    });
+  }
+  return connectionPromise;
+};
 
-pool.on('error', (error) => {
-  console.error('Unexpected PostgreSQL pool error:', error.message);
-});
+export const getCollection = (name) => {
+  if (!database) throw new Error('Database is not connected. Connect to MongoDB before accessing collections.');
+  return database.collection(name);
+};
 
-export const testConnection = async () => pool.query('SELECT 1');
-export const closePool = () => pool.end();
+export const testConnection = async () => {
+  await connectDatabase();
+};
 
-export default pool;
+export const closeDatabase = async () => {
+  if (client) await client.close();
+  client = undefined;
+  database = undefined;
+  connectionPromise = undefined;
+};

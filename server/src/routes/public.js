@@ -1,107 +1,100 @@
 import express from 'express';
-import pool from '../config/db.js';
+import { getCollection, testConnection } from '../config/db.js';
 import { sendInquiryEmail } from '../utils/mailer.js';
 import { error, success } from '../utils/response.js';
 import { httpError, readEmail, readPagination, readText } from '../utils/validation.js';
 
 const router = express.Router();
 
+const toRecord = (document) => {
+  if (!document) return null;
+  const { _id, ...record } = document;
+  return { ...record, id: _id.toString() };
+};
+const searchRegex = (value) => new RegExp(value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
+const projectRecord = async (document) => {
+  const project = toRecord(document);
+  if (!project.categoryId) return { ...project, categoryId: null, category: '', categorySlug: '' };
+  const category = await getCollection('project_categories').findOne({ _id: project.categoryId });
+  return {
+    ...project,
+    categoryId: project.categoryId.toString(),
+    category: category?.name || '',
+    categorySlug: category?.slug || '',
+  };
+};
+
 router.get('/health', async (req, res) => {
   try {
-    await pool.query('SELECT 1');
+    await testConnection();
     return success(res, { status: 'ok', database: 'connected', service: 'BELIEVE STACK API' });
   } catch (databaseError) {
-    console.error('Health check could not reach PostgreSQL:', databaseError.message);
+    console.error('Health check could not reach MongoDB:', databaseError.message);
     return error(res, 'Database unavailable.', 503);
   }
 });
 
 router.get('/projects', async (req, res) => {
-  const { page, limit, offset } = readPagination(req.query);
+  const { page, limit } = readPagination(req.query);
   const search = readText(req.query.search || '', 'Search', { max: 180 });
   const category = readText(req.query.category || '', 'Category', { max: 120 });
-  const values = [`%${search}%`, category || null];
-  const where = `WHERE p.status = 'published'
-    AND ($1 = '%%' OR p.title ILIKE $1 OR p.short_description ILIKE $1)
-    AND ($2::text IS NULL OR c.slug = $2 OR c.name = $2)`;
-  const [count, projects] = await Promise.all([
-    pool.query(`SELECT COUNT(*)::int AS total FROM projects p LEFT JOIN project_categories c ON c.id = p.category_id ${where}`, values),
-    pool.query(
-      `SELECT p.id, p.slug, p.title, p.short_description AS "shortDescription", p.description,
-        p.problem_statement AS "problemStatement", p.proposed_solution AS "proposedSolution",
-        p.thumbnail, p.status, p.category_id AS "categoryId", c.name AS category, c.slug AS "categorySlug",
-        p.features, p.stack, p.created_at AS "createdAt"
-       FROM projects p LEFT JOIN project_categories c ON c.id = p.category_id
-       ${where} ORDER BY p.created_at DESC LIMIT $3 OFFSET $4`,
-      [...values, limit, offset],
-    ),
+  const filter = { status: 'published' };
+  if (search) {
+    const regex = searchRegex(search);
+    filter.$or = [{ title: regex }, { shortDescription: regex }];
+  }
+  if (category) {
+    const categoryDoc = await getCollection('project_categories').findOne({
+      $or: [{ slug: category }, { name: category }],
+    });
+    if (!categoryDoc) return success(res, { projects: [], pagination: { page, limit, total: 0, pages: 0 } });
+    filter.categoryId = categoryDoc._id;
+  }
+  const collection = getCollection('projects');
+  const [total, documents] = await Promise.all([
+    collection.countDocuments(filter),
+    collection.find(filter).sort({ createdAt: -1 }).skip((page - 1) * limit).limit(limit).toArray(),
   ]);
+  const projects = await Promise.all(documents.map(projectRecord));
   return success(res, {
-    projects: projects.rows,
-    pagination: { page, limit, total: Number(count.rows[0].total), pages: Math.ceil(Number(count.rows[0].total) / limit) },
+    projects,
+    pagination: { page, limit, total, pages: Math.ceil(total / limit) },
   });
 });
 
 router.get('/projects/:slug', async (req, res) => {
-  const result = await pool.query(
-    `SELECT p.id, p.slug, p.title, p.short_description AS "shortDescription", p.description,
-      p.problem_statement AS "problemStatement", p.proposed_solution AS "proposedSolution",
-      p.thumbnail, p.status, p.category_id AS "categoryId", c.name AS category, c.slug AS "categorySlug",
-      p.features, p.stack, p.created_at AS "createdAt"
-     FROM projects p LEFT JOIN project_categories c ON c.id = p.category_id
-     WHERE p.slug = $1 AND p.status = 'published'`,
-    [req.params.slug],
-  );
-  if (!result.rowCount) return error(res, 'Project not found.', 404);
-  return success(res, { project: result.rows[0] });
+  const document = await getCollection('projects').findOne({ slug: req.params.slug, status: 'published' });
+  if (!document) return error(res, 'Project not found.', 404);
+  return success(res, { project: await projectRecord(document) });
 });
 
 router.get('/project-categories', async (req, res) => {
-  const result = await pool.query(
-    `SELECT DISTINCT c.id, c.name, c.slug
-     FROM project_categories c JOIN projects p ON p.category_id = c.id
-     WHERE p.status = 'published' ORDER BY c.name`,
-  );
-  return success(res, { categories: result.rows });
+  const ids = await getCollection('projects').distinct('categoryId', { status: 'published', categoryId: { $ne: null } });
+  const categories = await getCollection('project_categories')
+    .find({ _id: { $in: ids } }, { projection: { name: 1, slug: 1 } })
+    .sort({ name: 1 }).toArray();
+  return success(res, { categories: categories.map(toRecord) });
 });
 
 router.get('/services', async (req, res) => {
-  const result = await pool.query(
-    `SELECT id, title, short_description AS "shortDescription", description,
-      starting_price AS "startingPrice", delivery_estimate AS "deliveryEstimate", features
-     FROM services WHERE visible = TRUE ORDER BY created_at, id`,
-  );
-  return success(res, { services: result.rows });
+  const services = await getCollection('services').find({ visible: true }).sort({ createdAt: 1 }).toArray();
+  return success(res, { services: services.map(toRecord) });
 });
 
 router.get('/faqs', async (req, res) => {
-  const result = await pool.query(
-    'SELECT id, question, answer FROM faqs WHERE visible = TRUE ORDER BY sort_order, id',
-  );
-  return success(res, { faqs: result.rows });
+  const faqs = await getCollection('faqs').find({ visible: true }).sort({ sortOrder: 1, createdAt: 1 }).toArray();
+  return success(res, { faqs: faqs.map(toRecord) });
 });
 
 router.get('/testimonials', async (req, res) => {
-  const result = await pool.query(
-    'SELECT id, name, role, quote FROM testimonials WHERE approved = TRUE ORDER BY created_at DESC',
-  );
-  return success(res, { testimonials: result.rows });
+  const testimonials = await getCollection('testimonials').find({ approved: true }).sort({ createdAt: -1 }).toArray();
+  return success(res, { testimonials: testimonials.map(toRecord) });
 });
 
 router.get('/site-settings', async (req, res) => {
-  const result = await pool.query(
-    'SELECT key_name, COALESCE(value_json, to_jsonb(value_text)) AS value FROM site_settings ORDER BY key_name',
-  );
+  const result = await getCollection('site_settings').find().toArray();
   const settings = {};
-  for (const row of result.rows) settings[row.key_name] = row.value;
-  if (typeof settings.socialLinks === 'string') {
-    try {
-      settings.socialLinks = JSON.parse(settings.socialLinks);
-    } catch (parseError) {
-      console.error('Unable to decode saved social links:', parseError.message);
-      throw httpError('Saved site settings are invalid.', 500);
-    }
-  }
+  for (const row of result) settings[row.key] = row.value;
   return success(res, { settings });
 });
 
@@ -113,32 +106,27 @@ router.post('/enquiries', async (req, res) => {
   const phone = readText(body.phone, 'Phone', { required: true, max: 40 });
   const category = readText(body.category, 'Category', { required: true, max: 80 });
   const projectTitle = readText(body.projectTitle, 'Project title', { required: true, max: 200 });
-  const result = await pool.query(
-    `INSERT INTO enquiries
-      (full_name, email, phone, college, course, category, project_title, technologies,
-       required_features, project_deadline, budget_range, additional_requirements)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
-     RETURNING id, full_name AS "fullName", email, phone, college, course, category,
-       project_title AS "projectTitle", technologies, required_features AS features,
-       project_deadline AS deadline, budget_range AS "budgetRange", additional_requirements AS "additionalRequirements",
-       status, created_at AS "createdAt", updated_at AS "updatedAt"`,
-    [
-      fullName,
-      email,
-      phone,
-      readText(body.college, 'College', { max: 180 }),
-      readText(body.course, 'Course', { max: 180 }),
-      category,
-      projectTitle,
-      readText(body.technologies, 'Technologies', { max: 255 }),
-      readText(body.features, 'Features'),
-      readText(body.deadline, 'Deadline', { max: 80 }),
-      readText(body.budgetRange || 'Not sure yet', 'Budget range', { max: 80 }),
-      readText(body.additionalRequirements, 'Additional requirements'),
-    ],
-  );
-
-  const enquiry = result.rows[0];
+  const document = {
+    fullName,
+    email,
+    phone,
+    college: readText(body.college, 'College', { max: 180 }),
+    course: readText(body.course, 'Course', { max: 180 }),
+    category,
+    projectTitle,
+    technologies: readText(body.technologies, 'Technologies', { max: 255 }),
+    features: readText(body.features, 'Features'),
+    deadline: readText(body.deadline, 'Deadline', { max: 80 }),
+    budgetRange: readText(body.budgetRange || 'Not sure yet', 'Budget range', { max: 80 }),
+    additionalRequirements: readText(body.additionalRequirements, 'Additional requirements'),
+    status: 'NEW',
+    isSpam: false,
+    notes: [],
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  };
+  const result = await getCollection('enquiries').insertOne(document);
+  const enquiry = toRecord({ ...document, _id: result.insertedId });
   try {
     await sendInquiryEmail(enquiry);
   } catch (emailError) {

@@ -40,7 +40,7 @@ const navLinks = [
   { to: '/contact', label: 'Contact' },
 ];
 
-const technologyTrack = ['React.js', 'Node.js', 'Express.js', 'PostgreSQL', 'JavaScript', 'Python', 'AI/ML', 'REST APIs'];
+const technologyTrack = ['React.js', 'Node.js', 'Express.js', 'MongoDB', 'JavaScript', 'Python', 'AI/ML', 'REST APIs'];
 const featureCards = [
   { title: 'Innovation First', description: 'We transform ideas into practical software solutions using modern technologies.', icon: Sparkles },
   { title: 'Learn Through Building', description: 'We help students understand architecture, implementation, and the technologies behind their projects.', icon: Layers3 },
@@ -84,7 +84,7 @@ const fallbackProjects = [
     problemStatement: 'Students often struggle to balance coursework, deadlines, and revision cycles without a centralized system.',
     proposedSolution: 'A full-stack dashboard that combines a planner, task tracking, and analytics to keep student schedules organized and manageable.',
     features: ['Task tracking', 'Assignment calendar', 'Performance insights', 'Team reminders'],
-    stack: ['React', 'Node.js', 'PostgreSQL'],
+    stack: ['React', 'Node.js', 'MongoDB'],
     thumbnail: '',
   },
   {
@@ -110,7 +110,7 @@ const fallbackProjects = [
     problemStatement: 'Operational teams need a clearer way to detect irregular patterns before they become costly issues.',
     proposedSolution: 'A machine-learning-powered analytics dashboard that surfaces unusual activity and enables faster investigation.',
     features: ['Risk scoring', 'Anomaly detection', 'Cohort analysis', 'Reporting dashboard'],
-    stack: ['Python', 'Machine Learning', 'PostgreSQL', 'React'],
+    stack: ['Python', 'Machine Learning', 'MongoDB', 'React'],
     thumbnail: '',
   },
   {
@@ -123,7 +123,7 @@ const fallbackProjects = [
     problemStatement: 'Small businesses and startups need a professional platform to communicate value and highlight their work online.',
     proposedSolution: 'A portfolio platform with sections for projects, services, case studies, and business messaging tailored for digital brand building.',
     features: ['Portfolio sections', 'Client showcase', 'Services overview', 'Lead generation flow'],
-    stack: ['React', 'Node.js', 'REST APIs', 'PostgreSQL'],
+    stack: ['React', 'Node.js', 'REST APIs', 'MongoDB'],
     thumbnail: '',
   },
 ];
@@ -166,16 +166,16 @@ const fallbackTestimonials = [
 ];
 
 const experienceStats = [
-  { value: '1000+', label: 'Happy Customers', icon: UserRound },
-  { value: '300+', label: 'Projects Completed', icon: Briefcase },
-  { value: '40+', label: 'Team Support', icon: Workflow },
-  { value: '3+', label: 'Global Countries', icon: Globe2 },
+  { value: '100+', label: 'Happy Customers', icon: UserRound },
+  { value: '30+', label: 'Projects Completed', icon: Briefcase },
+  { value: '5+', label: 'Team Support', icon: Workflow },
+  { value: '1+', label: 'Global Countries', icon: Globe2 },
 ];
 
 const fallbackFaqs = [
   { id: 1, question: 'Can you build custom project ideas?', answer: 'Yes. We work with your idea, scope, and constraints to propose a practical solution, architecture, and development plan.' },
   { id: 2, question: 'Do you support academic and final-year projects?', answer: 'Absolutely. We help students with implementation, documentation, and technical explanation for academic work.' },
-  { id: 3, question: 'What technologies do you use?', answer: 'We work with modern web stacks such as React, Node.js, Express, PostgreSQL, Python, AI integrations, and related tooling.' },
+  { id: 3, question: 'What technologies do you use?', answer: 'We work with modern web stacks such as React, Node.js, Express, MongoDB, Python, AI integrations, and related tooling.' },
   { id: 4, question: 'How do I get started?', answer: 'Tell us your project idea, timeline, and level of support you need. We will suggest a scoped plan and next steps.' },
 ];
 
@@ -379,7 +379,7 @@ function HomePage({ settings }) {
               <Cpu size={26} />
             </div>
             <div className="tech-card db-card">
-              <span className="mini-label">PostgreSQL</span>
+              <span className="mini-label">MongoDB</span>
               <Database size={24} />
             </div>
             <div className="dashboard-mockup">
@@ -931,7 +931,7 @@ function EnquiryForm() {
           </select>
         </label>
         <label className="full-row"><span>Project title or idea</span><input name="projectTitle" value={form.projectTitle} onChange={handleChange} placeholder="What would you like to build?" maxLength="200" required /></label>
-        <label className="full-row"><span>Preferred technology stack</span><input name="technologies" value={form.technologies} onChange={handleChange} placeholder="React, Node.js, PostgreSQL" maxLength="255" /></label>
+        <label className="full-row"><span>Preferred technology stack</span><input name="technologies" value={form.technologies} onChange={handleChange} placeholder="React, Node.js, MongoDB" maxLength="255" /></label>
         <label className="full-row"><span>Required features</span><textarea name="features" value={form.features} onChange={handleChange} placeholder="What should your project do?" rows="3" /></label>
         <label><span>Project deadline</span><input type="date" name="deadline" value={form.deadline} onChange={handleChange} /></label>
         <label><span>Budget range</span><select name="budgetRange" value={form.budgetRange} onChange={handleChange}><option>Not sure yet</option><option>₹10k - ₹25k</option><option>₹25k - ₹50k</option><option>₹50k - ₹1L</option><option>₹1L+</option></select></label>
