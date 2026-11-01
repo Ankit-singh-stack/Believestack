@@ -5,7 +5,8 @@ services:
     region: oregon
     plan: starter
     rootDir: server
-    buildCommand: npm install && npm run db && npm run seed
+    buildCommand: npm install
+    preDeployCommand: npm run db && npm run seed
     startCommand: npm start
     autoDeploy: true
     envVars:
@@ -13,8 +14,18 @@ services:
         value: production
       - key: PORT
         value: 10000
-      - key: DATABASE_URL
+      - key: PGHOST
         sync: false
+      - key: PGPORT
+        value: 5432
+      - key: PGDATABASE
+        sync: false
+      - key: PGUSER
+        sync: false
+      - key: PGPASSWORD
+        sync: false
+      - key: DB_SSL
+        value: true
       - key: JWT_SECRET
         sync: false
       - key: CLIENT_ORIGIN
