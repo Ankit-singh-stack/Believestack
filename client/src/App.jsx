@@ -887,7 +887,7 @@ function EnquiryForm() {
   const [form, setForm] = useState({
     fullName: '', email: '', phone: '', college: '', course: '',
     category: 'Full-Stack Project', projectTitle: '', technologies: '',
-    features: '', deadline: '', budgetRange: 'Not sure yet', additionalRequirements: '',
+    features: '', deadline: '', budgetRange: '3000', additionalRequirements: '',
   });
   const [status, setStatus] = useState({ type: '', message: '' });
 
@@ -905,7 +905,7 @@ function EnquiryForm() {
       setForm({
         fullName: '', email: '', phone: '', college: '', course: '',
         category: 'Full-Stack Project', projectTitle: '', technologies: '',
-        features: '', deadline: '', budgetRange: 'Not sure yet', additionalRequirements: '',
+        features: '', deadline: '', budgetRange: '3000', additionalRequirements: '',
       });
       setStatus({ type: 'success', message: 'Thanks — your project enquiry has been received. We’ll be in touch soon.' });
     } catch (error) {
@@ -931,7 +931,7 @@ function EnquiryForm() {
         <label className="full-row"><span>Preferred technology stack</span><input name="technologies" value={form.technologies} onChange={handleChange} placeholder="React, Node.js, MongoDB" maxLength="255" /></label>
         <label className="full-row"><span>Required features</span><textarea name="features" value={form.features} onChange={handleChange} placeholder="What should your project do?" rows="3" /></label>
         <label><span>Project deadline</span><input type="date" name="deadline" value={form.deadline} onChange={handleChange} /></label>
-        <label><span>Budget range</span><select name="budgetRange" value={form.budgetRange} onChange={handleChange}><option>Not sure yet</option><option>₹10k - ₹25k</option><option>₹25k - ₹50k</option><option>₹50k - ₹1L</option><option>₹1L+</option></select></label>
+        <label><span>Budget range</span><select name="budgetRange" value={form.budgetRange} onChange={handleChange}><option value="3000">₹3,000</option><option value="4000">₹4,000</option><option value="4500">₹4,500</option></select></label>
         <label className="full-row"><span>Additional requirements</span><textarea name="additionalRequirements" value={form.additionalRequirements} onChange={handleChange} rows="3" placeholder="Anything else we should know?" /></label>
       </div>
       {status.message && <div className={`form-message ${status.type}`} role={status.type === 'error' ? 'alert' : 'status'}>{status.message}</div>}

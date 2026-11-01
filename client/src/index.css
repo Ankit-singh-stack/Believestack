@@ -148,7 +148,8 @@ p { margin: 0; color: var(--muted); }
 .input-grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 16px; }
 label { display: flex; flex-direction: column; gap: 8px; color: var(--text); font-weight: 500; }
 label span { color: #e9edf7; }
-input, textarea, select { width: 100%; border-radius: 12px; border: 1px solid rgba(255,255,255,0.08); background: rgba(255,255,255,0.03); color: var(--text); padding: 0.85rem 0.9rem; }
+input, textarea, select { width: 100%; border-radius: 12px; border: 1px solid rgba(255,255,255,0.08); background: rgba(8,11,20,0.96); color: var(--text); padding: 0.85rem 0.9rem; color-scheme: dark; }
+select option { background-color: #111827; color: var(--text); }
 textarea { resize: vertical; }
 .full-row { grid-column: 1 / -1; }
 .form-message { margin-top: 16px; border-radius: 12px; padding: 0.8rem 1rem; border: 1px solid transparent; }
