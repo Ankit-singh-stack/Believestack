@@ -1,25 +1,27 @@
 import nodemailer from 'nodemailer';
 
-const DEFAULT_CONTACT_EMAIL = process.env.CONTACT_EMAIL || 'belivestack1316@gmail.com';
-const DEFAULT_MAIL_FROM = process.env.MAIL_FROM || DEFAULT_CONTACT_EMAIL;
+const CONTACT_EMAIL = 'belivestack1316@gmail.com';
+const DEFAULT_MAIL_FROM = process.env.MAIL_FROM || CONTACT_EMAIL;
+const smtpHost = process.env.SMTP_HOST || 'smtp.gmail.com';
+const smtpPort = Number(process.env.SMTP_PORT || (smtpHost === 'smtp.gmail.com' ? 465 : 587));
 
 const transportConfig = {
-  host: process.env.SMTP_HOST,
-  port: Number(process.env.SMTP_PORT || 587),
-  secure: process.env.SMTP_SECURE === 'true',
+  host: smtpHost,
+  port: smtpPort,
+  secure: process.env.SMTP_SECURE === undefined ? smtpPort === 465 : process.env.SMTP_SECURE === 'true',
   auth: process.env.SMTP_USER && process.env.SMTP_PASS
     ? { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS }
     : undefined,
 };
 
-const transporter = process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS
+const transporter = process.env.SMTP_USER && process.env.SMTP_PASS
   ? nodemailer.createTransport(transportConfig)
   : null;
 
 const formatText = (value) => (typeof value === 'string' ? value : value == null ? '' : String(value));
 
 export const sendInquiryEmail = async (enquiry) => {
-  const to = process.env.CONTACT_EMAIL || DEFAULT_CONTACT_EMAIL;
+  const to = CONTACT_EMAIL;
   const from = process.env.MAIL_FROM || DEFAULT_MAIL_FROM;
 
   if (!transporter) {

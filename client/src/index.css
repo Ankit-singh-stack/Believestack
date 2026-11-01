@@ -41,9 +41,7 @@ p { margin: 0; color: var(--muted); }
 .site-header.scrolled { background: rgba(8, 11, 20, 0.8); border-color: var(--border); }
 .nav-wrap { display: flex; align-items: center; justify-content: space-between; min-height: 80px; gap: 20px; }
 .brand { display: inline-flex; align-items: center; gap: 12px; font-weight: 700; letter-spacing: 0.03em; }
-.brand-mark { position: relative; width: 22px; height: 22px; display: inline-flex; align-items: center; justify-content: center; }
-.mark-square { position: absolute; width: 16px; height: 16px; border-radius: 6px; border: 2px solid rgba(124, 92, 252, 0.9); background: linear-gradient(135deg, rgba(124, 92, 252, 0.2), rgba(34, 211, 238, 0.18)); transform: rotate(45deg); }
-.mark-line { position: absolute; width: 10px; height: 2px; background: linear-gradient(90deg, var(--secondary), var(--primary)); border-radius: 999px; transform: translateX(5px); }
+.brand-mark { display: inline-block; width: 30px; height: 30px; flex: 0 0 30px; object-fit: contain; }
 .desktop-nav { display: flex; align-items: center; gap: 24px; }
 .nav-link { position: relative; color: var(--muted); font-size: 0.96rem; transition: color 0.2s ease; }
 .nav-link.active, .nav-link:hover { color: var(--text); }

@@ -53,7 +53,7 @@ For local mobile testing, start the frontend with `npm run dev -- --host 0.0.0.0
    - `ADMIN_EMAIL=admin@believestack.dev`
    - `ADMIN_PASSWORD=StrongPassword123!`
    - `PORT=10000`
-   - Optional mail values: `CONTACT_EMAIL`, `MAIL_FROM`, `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`
+   - Configure `SMTP_USER=belivestack1316@gmail.com` and `SMTP_PASS` with a Google app password so enquiry notifications can be delivered.
 5. Deploy.
 
 ## MongoDB connection

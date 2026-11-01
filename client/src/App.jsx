@@ -271,10 +271,7 @@ function Header({ settings }) {
     <header className={`site-header ${scrolled ? 'scrolled' : ''}`}>
       <div className="container nav-wrap">
         <Link to="/" className="brand" aria-label="BELIEVE STACK home">
-          <div className="brand-mark" aria-hidden="true">
-            <span className="mark-square" />
-            <span className="mark-line" />
-          </div>
+          <img className="brand-mark" src="/believestack-logo.png" alt="" aria-hidden="true" />
           <span>{settings.brandName}</span>
         </Link>
 
@@ -1028,10 +1025,7 @@ function Footer({ settings }) {
       <div className="container footer-grid">
         <div>
           <div className="brand brand-footer">
-            <div className="brand-mark">
-              <span className="mark-square" />
-              <span className="mark-line" />
-            </div>
+            <img className="brand-mark" src="/believestack-logo.png" alt="" aria-hidden="true" />
             <span>{settings.brandName}</span>
           </div>
           <p className="footer-tagline">{settings.tagline}</p>
