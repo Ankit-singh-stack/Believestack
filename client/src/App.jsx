@@ -73,6 +73,52 @@ const fallbackProjectCategories = [
   { id: 4, name: 'Final Year' },
 ];
 
+const portfolioProjects = [
+  {
+    id: 'portfolio-hr-portal',
+    slug: 'hr-portal',
+    title: 'HR Portal',
+    category: 'Business Applications',
+    shortDescription: 'An employee portal for attendance, leave applications, payments, and documents.',
+    description: 'An employee self-service portal that brings everyday HR tools together in one dashboard.',
+    problemStatement: 'Employees need a convenient place to access common workplace services and manage requests.',
+    proposedSolution: 'A centralized HR portal for employee information, attendance, leave, payments, and documents.',
+    features: ['Attendance tracking', 'Leave applications', 'Payment information', 'Employee documents'],
+    stack: ['HR Management', 'Employee Portal'],
+    thumbnail: '/assets/hr-portal-preview.png',
+    projectUrl: 'https://hrportal-client.onrender.com',
+  },
+  {
+    id: 'portfolio-finance-crm',
+    slug: 'finance-crm',
+    title: 'Finance CRM',
+    category: 'Business Applications',
+    shortDescription: 'A finance-focused CRM for managing customer relationships and finance workflows.',
+    description: 'A customer relationship management application built for finance-focused workflows.',
+    problemStatement: 'Finance teams need a clear workspace for organizing customer relationships and related workflows.',
+    proposedSolution: 'A dedicated CRM interface that brings finance-related customer workflows into one place.',
+    features: ['Customer relationship management', 'Finance workflows', 'CRM dashboard'],
+    stack: ['Finance', 'CRM'],
+    thumbnail: '/assets/finance-crm-preview.svg',
+    projectUrl: 'https://finance-crm-server.onrender.com',
+  },
+];
+
+const portfolioCategory = { id: 'business-applications', slug: 'business-applications', name: 'Business Applications' };
+const withPortfolioProjects = (projects) => {
+  const portfolioSlugs = new Set(portfolioProjects.map((project) => project.slug));
+  return [...portfolioProjects, ...projects.filter((project) => !portfolioSlugs.has(project.slug))];
+};
+const findProjectBySlug = (slug, projectList = []) => {
+  const catalog = withPortfolioProjects(projectList);
+  return catalog.find((project) => project.slug === slug) || null;
+};
+const withPortfolioCategory = (categories) => (
+  categories.some((category) => category.slug === portfolioCategory.slug || category.name === portfolioCategory.name)
+    ? categories
+    : [...categories, portfolioCategory]
+);
+
 const fallbackProjects = [
   {
     id: 1,
@@ -127,6 +173,7 @@ const fallbackProjects = [
     thumbnail: '',
   },
 ];
+
 
 const fallbackServices = [
   {
@@ -306,9 +353,9 @@ function Header({ settings }) {
 }
 
 function HomePage({ settings }) {
-  const [projects, setProjects] = useState(fallbackProjects);
+  const [projects, setProjects] = useState(() => withPortfolioProjects(fallbackProjects));
   const [services, setServices] = useState(fallbackServices);
-  const [projectCategories, setProjectCategories] = useState(fallbackProjectCategories);
+  const [projectCategories, setProjectCategories] = useState(() => withPortfolioCategory(fallbackProjectCategories));
   const [testimonials, setTestimonials] = useState(fallbackTestimonials);
   const [contentError, setContentError] = useState('');
   const [contentLoading, setContentLoading] = useState(true);
@@ -324,8 +371,8 @@ function HomePage({ settings }) {
     ]).then((results) => {
       if (!active) return;
       const [projectResult, categoryResult, serviceResult, testimonialResult] = results;
-      const nextProjects = projectResult.status === 'fulfilled' && Array.isArray(projectResult.value.data.projects) && projectResult.value.data.projects.length ? projectResult.value.data.projects : fallbackProjects;
-      const nextCategories = categoryResult.status === 'fulfilled' && Array.isArray(categoryResult.value.data.categories) && categoryResult.value.data.categories.length ? categoryResult.value.data.categories : fallbackProjectCategories;
+      const nextProjects = withPortfolioProjects(projectResult.status === 'fulfilled' && Array.isArray(projectResult.value.data.projects) && projectResult.value.data.projects.length ? projectResult.value.data.projects : fallbackProjects);
+      const nextCategories = withPortfolioCategory(categoryResult.status === 'fulfilled' && Array.isArray(categoryResult.value.data.categories) && categoryResult.value.data.categories.length ? categoryResult.value.data.categories : fallbackProjectCategories);
       const nextServices = serviceResult.status === 'fulfilled' && Array.isArray(serviceResult.value.data.services) && serviceResult.value.data.services.length ? serviceResult.value.data.services : fallbackServices;
       const nextTestimonials = testimonialResult.status === 'fulfilled' && Array.isArray(testimonialResult.value.data.testimonials) && testimonialResult.value.data.testimonials.length ? testimonialResult.value.data.testimonials : fallbackTestimonials;
 
@@ -623,8 +670,8 @@ function ServicesPage() {
 }
 
 function ProjectsPage() {
-  const [projects, setProjects] = useState(fallbackProjects);
-  const [projectCategories, setProjectCategories] = useState(fallbackProjectCategories);
+  const [projects, setProjects] = useState(() => withPortfolioProjects(fallbackProjects));
+  const [projectCategories, setProjectCategories] = useState(() => withPortfolioCategory(fallbackProjectCategories));
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState('All Projects');
@@ -632,12 +679,12 @@ function ProjectsPage() {
   useEffect(() => {
     Promise.all([api.get('/api/projects?limit=100'), api.get('/api/project-categories')])
       .then(([projectResponse, categoryResponse]) => {
-        setProjects(Array.isArray(projectResponse.data.projects) && projectResponse.data.projects.length ? projectResponse.data.projects : fallbackProjects);
-        setProjectCategories(Array.isArray(categoryResponse.data.categories) && categoryResponse.data.categories.length ? categoryResponse.data.categories : fallbackProjectCategories);
+        setProjects(withPortfolioProjects(Array.isArray(projectResponse.data.projects) && projectResponse.data.projects.length ? projectResponse.data.projects : fallbackProjects));
+        setProjectCategories(withPortfolioCategory(Array.isArray(categoryResponse.data.categories) && categoryResponse.data.categories.length ? categoryResponse.data.categories : fallbackProjectCategories));
       })
       .catch((requestError) => {
-        setProjects(fallbackProjects);
-        setProjectCategories(fallbackProjectCategories);
+        setProjects(withPortfolioProjects(fallbackProjects));
+        setProjectCategories(withPortfolioCategory(fallbackProjectCategories));
         setError(requestError.response?.data?.message || 'Unable to load projects. Showing preview examples instead.');
       })
       .finally(() => setLoading(false));
@@ -666,7 +713,7 @@ function ProjectsPage() {
 }
 
 function ExperiencePage() {
-  const [projects, setProjects] = useState(fallbackProjects.slice(0, 3));
+  const [projects, setProjects] = useState(() => withPortfolioProjects(fallbackProjects.slice(0, 3)));
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
 
@@ -676,11 +723,11 @@ function ExperiencePage() {
       .then((response) => {
         if (!active) return;
         const projectList = response.data.projects;
-        setProjects(Array.isArray(projectList) && projectList.length ? projectList : fallbackProjects.slice(0, 3));
+        setProjects(withPortfolioProjects(Array.isArray(projectList) && projectList.length ? projectList : fallbackProjects.slice(0, 3)));
       })
       .catch((requestError) => {
         if (!active) return;
-        setProjects(fallbackProjects.slice(0, 3));
+        setProjects(withPortfolioProjects(fallbackProjects.slice(0, 3)));
         setError(requestError.response?.data?.message || 'Unable to load recent projects. Showing preview examples instead.');
       })
       .finally(() => {
@@ -758,7 +805,9 @@ function ProjectCard({ project }) {
           {(project.stack || []).slice(0, 4).map((item) => <span key={item}>{item}</span>)}
         </div>
         <div className="card-actions">
-          <Link to={`/projects/${project.slug}`} className="btn btn-ghost">View Details</Link>
+          {project.projectUrl
+            ? <a href={project.projectUrl} className="btn btn-ghost">Open Project</a>
+            : <Link to={`/projects/${project.slug}`} className="btn btn-ghost">View Details</Link>}
           <Link to="/contact" className="btn btn-primary btn-small">Request Similar Project</Link>
         </div>
       </div>
@@ -769,7 +818,7 @@ function ProjectCard({ project }) {
 function ProjectDetailPage() {
   const { slug } = useParams();
   const [result, setResult] = useState({ slug: '', project: null, error: '', loading: true });
-  const fallbackProject = fallbackProjects.find((project) => project.slug === slug) || null;
+  const fallbackProject = findProjectBySlug(slug, fallbackProjects);
 
   useEffect(() => {
     let active = true;
