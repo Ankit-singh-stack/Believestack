@@ -1,33 +1,28 @@
 import nodemailer from 'nodemailer';
 
-const CONTACT_EMAIL = 'belivestack1316@gmail.com';
-const DEFAULT_MAIL_FROM = process.env.MAIL_FROM || CONTACT_EMAIL;
-const smtpHost = process.env.SMTP_HOST || 'smtp.gmail.com';
-const smtpPort = Number(process.env.SMTP_PORT || (smtpHost === 'smtp.gmail.com' ? 465 : 587));
-
-const transportConfig = {
-  host: smtpHost,
-  port: smtpPort,
-  secure: process.env.SMTP_SECURE === undefined ? smtpPort === 465 : process.env.SMTP_SECURE === 'true',
-  auth: process.env.SMTP_USER && process.env.SMTP_PASS
-    ? { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS }
-    : undefined,
-};
-
-const transporter = process.env.SMTP_USER && process.env.SMTP_PASS
-  ? nodemailer.createTransport(transportConfig)
-  : null;
+const DEFAULT_CONTACT_EMAIL = 'belivestack1316@gmail.com';
 
 const formatText = (value) => (typeof value === 'string' ? value : value == null ? '' : String(value));
 
 export const sendInquiryEmail = async (enquiry) => {
-  const to = CONTACT_EMAIL;
-  const from = process.env.MAIL_FROM || DEFAULT_MAIL_FROM;
+  const to = process.env.CONTACT_EMAIL || DEFAULT_CONTACT_EMAIL;
+  const smtpUser = process.env.SMTP_USER;
+  const smtpPass = process.env.SMTP_PASS;
 
-  if (!transporter) {
+  if (!smtpUser || !smtpPass) {
     console.warn(`Enquiry email was not sent because SMTP is not configured. Intended recipient: ${to}`);
     return { sent: false, reason: 'smtp-not-configured' };
   }
+
+  const smtpHost = process.env.SMTP_HOST || 'smtp.gmail.com';
+  const smtpPort = Number(process.env.SMTP_PORT || (smtpHost === 'smtp.gmail.com' ? 465 : 587));
+  const transporter = nodemailer.createTransport({
+    host: smtpHost,
+    port: smtpPort,
+    secure: process.env.SMTP_SECURE === undefined ? smtpPort === 465 : process.env.SMTP_SECURE === 'true',
+    auth: { user: smtpUser, pass: smtpPass },
+  });
+  const from = process.env.MAIL_FROM || smtpUser;
 
   const projectTitle = formatText(enquiry.projectTitle || enquiry.project_title || 'New project enquiry');
   const fullName = formatText(enquiry.fullName || enquiry.full_name || 'Customer');
@@ -79,7 +74,7 @@ export const sendInquiryEmail = async (enquiry) => {
     </div>
   `;
 
-  await transporter.sendMail({
+  const delivery = await transporter.sendMail({
     from,
     to,
     replyTo: email || from,
@@ -88,5 +83,9 @@ export const sendInquiryEmail = async (enquiry) => {
     html,
   });
 
-  return { sent: true, recipient: to };
+  if (!delivery.accepted?.includes(to)) {
+    throw new Error(`SMTP did not accept the enquiry notification for ${to}.`);
+  }
+
+  return { sent: true, recipient: to, messageId: delivery.messageId };
 };

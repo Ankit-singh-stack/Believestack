@@ -25,7 +25,7 @@ The API will not start if MongoDB or `JWT_SECRET` is unavailable. The health end
 - `ADMIN_EMAIL`, `ADMIN_PASSWORD`, and optionally `ADMIN_NAME` (required by the seed command)
 - `CLIENT_ORIGIN` (frontend origin; comma-separated origins are supported)
 - `PORT` (defaults to `5000`)
-- Enquiry notifications are sent to `belivestack1316@gmail.com`. Configure `SMTP_USER` and `SMTP_PASS` with that Gmail account and a Google app password; Gmail SMTP defaults to `smtp.gmail.com:465`. `MAIL_FROM` may set the sender address. Do not commit the app password.
+- Enquiry notifications are sent to `CONTACT_EMAIL` (defaults to `belivestack1316@gmail.com`). Set `SMTP_USER` to the Gmail account used to authenticate and `SMTP_PASS` to that account's Google app password; Gmail SMTP defaults to `smtp.gmail.com:465`. `MAIL_FROM` is optional and should match `SMTP_USER` or a verified Gmail alias. Set these as environment variables on the deployed backend, then redeploy. Check the backend logs for SMTP configuration or delivery errors; SMTP acceptance confirms the mail server accepted the message, but inbox placement may still depend on Gmail filters. Do not commit the app password.
 
 ## API
 
