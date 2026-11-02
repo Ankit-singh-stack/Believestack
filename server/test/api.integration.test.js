@@ -18,6 +18,16 @@ test('MongoDB-backed API CRUD and persistence', { skip: integrationEnabled ? fal
     server.once('error', reject);
   });
   const baseUrl = `http://127.0.0.1:${address.port}`;
+  const runId = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+  const categoryName = `API Integration Category ${runId}`;
+  const updatedCategoryName = `Updated ${categoryName}`;
+  const categorySlug = `api-integration-category-${runId}`;
+  const projectTitle = `API Integration Project ${runId}`;
+  const projectSlug = `api-integration-project-${runId}`;
+  const serviceTitle = `API Integration Service ${runId}`;
+  const faqQuestion = `API integration question ${runId}?`;
+  const testimonialName = `API Tester ${runId}`;
+  const enquiryEmail = `api-integration-${runId.replace(/[^a-z0-9]/gi, '').toLowerCase()}@example.com`;
   let cookie = '';
   let categoryId;
   let projectId;
@@ -63,23 +73,23 @@ test('MongoDB-backed API CRUD and persistence', { skip: integrationEnabled ? fal
 
     const category = await request('/api/admin/categories', {
       method: 'POST',
-      body: { name: 'API Integration Category', slug: 'api-integration-category' },
+      body: { name: categoryName, slug: categorySlug },
     });
     assert.equal(category.response.status, 201, category.payload.message);
     categoryId = category.payload.category.id;
     assert.equal((await request(`/api/admin/categories/${categoryId}`)).payload.category.id, categoryId);
     const categoryUpdate = await request(`/api/admin/categories/${categoryId}`, {
       method: 'PATCH',
-      body: { name: 'Updated Integration Category' },
+      body: { name: updatedCategoryName },
     });
-    assert.equal(categoryUpdate.payload.category.name, 'Updated Integration Category');
-    assert.ok((await request('/api/admin/categories?search=Updated%20Integration')).payload.categories.some((item) => item.id === categoryId));
+    assert.equal(categoryUpdate.payload.category.name, updatedCategoryName);
+    assert.ok((await request(`/api/admin/categories?search=${encodeURIComponent(updatedCategoryName)}`)).payload.categories.some((item) => item.id === categoryId));
 
     const project = await request('/api/admin/projects', {
       method: 'POST',
       body: {
-        title: 'API Integration Project',
-        slug: 'api-integration-project',
+        title: projectTitle,
+        slug: projectSlug,
         categoryId,
         status: 'published',
         shortDescription: 'Integration test project.',
@@ -91,43 +101,43 @@ test('MongoDB-backed API CRUD and persistence', { skip: integrationEnabled ? fal
     projectId = project.payload.project.id;
     assert.equal((await request(`/api/admin/projects/${projectId}`)).payload.project.id, projectId);
     const persistedProject = await getCollection('projects').findOne({ _id: new ObjectId(projectId) });
-    assert.equal(persistedProject.title, 'API Integration Project');
-    assert.ok((await request('/api/projects?category=api-integration-category')).payload.projects.some((item) => item.id === projectId));
+    assert.equal(persistedProject.title, projectTitle);
+    assert.ok((await request(`/api/projects?category=${encodeURIComponent(categorySlug)}`)).payload.projects.some((item) => item.id === projectId));
     const projectUpdate = await request(`/api/admin/projects/${projectId}`, {
       method: 'PATCH',
-      body: { title: 'Updated API Integration Project', stack: ['Node.js'] },
+      body: { title: `Updated ${projectTitle}`, stack: ['Node.js'] },
     });
-    assert.equal(projectUpdate.payload.project.title, 'Updated API Integration Project');
+    assert.equal(projectUpdate.payload.project.title, `Updated ${projectTitle}`);
     assert.deepEqual(projectUpdate.payload.project.stack, ['Node.js']);
     assert.equal((await request(`/api/projects/${projectUpdate.payload.project.slug}`)).payload.project.id, projectId);
 
     const service = await request('/api/admin/services', {
       method: 'POST',
-      body: { title: 'API Integration Service', shortDescription: 'Integration service', features: ['Build'], startingPrice: 10 },
+      body: { title: serviceTitle, shortDescription: 'Integration service', features: ['Build'], startingPrice: 10 },
     });
     assert.equal(service.response.status, 201, service.payload.message);
     serviceId = service.payload.service.id;
     assert.equal((await request(`/api/admin/services/${serviceId}`)).payload.service.id, serviceId);
-    assert.ok((await request('/api/admin/services?search=API%20Integration')).payload.services.some((item) => item.id === serviceId));
+    assert.ok((await request(`/api/admin/services?search=${encodeURIComponent(serviceTitle)}`)).payload.services.some((item) => item.id === serviceId));
     const serviceUpdate = await request(`/api/admin/services/${serviceId}`, { method: 'PATCH', body: { visible: false, startingPrice: 20 } });
     assert.equal(serviceUpdate.payload.service.startingPrice, '20.00');
     assert.ok(!(await request('/api/services', { authenticated: false })).payload.services.some((item) => item.id === serviceId));
 
     const faq = await request('/api/admin/faqs', {
       method: 'POST',
-      body: { question: 'API integration question?', answer: 'Yes', sortOrder: 5000 },
+      body: { question: faqQuestion, answer: 'Yes', sortOrder: 5000 },
     });
     assert.equal(faq.response.status, 201, faq.payload.message);
     faqId = faq.payload.faq.id;
     assert.equal((await request(`/api/admin/faqs/${faqId}`)).payload.faq.id, faqId);
-    assert.ok((await request('/api/admin/faqs?search=API%20integration')).payload.faqs.some((item) => item.id === faqId));
+    assert.ok((await request(`/api/admin/faqs?search=${encodeURIComponent(faqQuestion)}`)).payload.faqs.some((item) => item.id === faqId));
     const faqUpdate = await request(`/api/admin/faqs/${faqId}`, { method: 'PATCH', body: { answer: 'Updated answer', visible: false } });
     assert.equal(faqUpdate.payload.faq.answer, 'Updated answer');
     assert.ok(!(await request('/api/faqs', { authenticated: false })).payload.faqs.some((item) => item.id === faqId));
 
     const testimonial = await request('/api/admin/testimonials', {
       method: 'POST',
-      body: { name: 'API Tester', role: 'QA', quote: 'An integration test.', approved: false },
+      body: { name: testimonialName, role: 'QA', quote: 'An integration test.', approved: false },
     });
     assert.equal(testimonial.response.status, 201, testimonial.payload.message);
     testimonialId = testimonial.payload.testimonial.id;
@@ -135,7 +145,7 @@ test('MongoDB-backed API CRUD and persistence', { skip: integrationEnabled ? fal
     const testimonialUpdate = await request(`/api/admin/testimonials/${testimonialId}`, { method: 'PATCH', body: { approved: true } });
     assert.equal(testimonialUpdate.payload.testimonial.approved, true);
     assert.ok((await request('/api/testimonials', { authenticated: false })).payload.testimonials.some((item) => item.id === testimonialId));
-    assert.ok((await request('/api/admin/testimonials?search=API%20Tester')).payload.testimonials.some((item) => item.id === testimonialId));
+    assert.ok((await request(`/api/admin/testimonials?search=${encodeURIComponent(testimonialName)}`)).payload.testimonials.some((item) => item.id === testimonialId));
 
     const originalSettings = await request('/api/admin/site-settings');
     previousTagline = originalSettings.payload.settings.tagline;
@@ -151,18 +161,18 @@ test('MongoDB-backed API CRUD and persistence', { skip: integrationEnabled ? fal
       method: 'POST',
       authenticated: false,
       body: {
-        fullName: 'API Integration Contact',
-        email: 'api-integration@example.com',
+        fullName: `API Integration Contact ${runId}`,
+        email: enquiryEmail,
         phone: '+15551234567',
         category: 'Full-Stack Project',
-        projectTitle: 'API Integration Enquiry',
+        projectTitle: `API Integration Enquiry ${runId}`,
       },
     });
     assert.equal(createdEnquiry.response.status, 201, createdEnquiry.payload.message);
     enquiryId = createdEnquiry.payload.enquiry.id;
-    assert.ok((await request('/api/admin/enquiries?search=API%20Integration')).payload.enquiries.some((item) => item.id === enquiryId));
+    assert.ok((await request(`/api/admin/enquiries?search=${encodeURIComponent(runId)}`)).payload.enquiries.some((item) => item.id === enquiryId));
     const enquiryDetail = await request(`/api/admin/enquiries/${enquiryId}`);
-    assert.equal(enquiryDetail.payload.enquiry.email, 'api-integration@example.com');
+    assert.equal(enquiryDetail.payload.enquiry.email, enquiryEmail);
     const note = await request(`/api/admin/enquiries/${enquiryId}/notes`, { method: 'POST', body: { note: 'Integration note' } });
     assert.equal(note.response.status, 201);
     const enquiryUpdate = await request(`/api/admin/enquiries/${enquiryId}`, {

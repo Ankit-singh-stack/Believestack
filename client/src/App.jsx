@@ -81,9 +81,54 @@ const portfolioProjects = [
     thumbnail: '/assets/worksync-ai-preview.png',
     projectUrl: 'https://ai-project-management-collaboration-tool.onrender.com',
   },
+  {
+    id: 'portfolio-hr-portal',
+    slug: 'hr-portal',
+    title: 'HR Portal',
+    category: 'Business Applications',
+    shortDescription: 'An employee portal for attendance, leave applications, payments, and documents.',
+    description: 'An employee self-service portal that brings everyday HR tools together in one dashboard.',
+    problemStatement: 'Employees need a convenient place to access common workplace services and manage requests.',
+    proposedSolution: 'A centralized HR portal for employee information, attendance, leave, payments, and documents.',
+    features: ['Attendance tracking', 'Leave applications', 'Payment information', 'Employee documents'],
+    stack: ['HR Management', 'Employee Portal'],
+    thumbnail: '/assets/hr-portal-preview.png',
+    projectUrl: 'https://hrportal-client.onrender.com',
+  },
+  {
+    id: 'portfolio-finance-crm',
+    slug: 'finance-crm',
+    title: 'Finance CRM',
+    category: 'Business Applications',
+    shortDescription: 'A finance-focused CRM for managing customer relationships and finance workflows.',
+    description: 'A customer relationship management application built for finance-focused workflows.',
+    problemStatement: 'Finance teams need a clear workspace for organizing customer relationships and related workflows.',
+    proposedSolution: 'A dedicated CRM interface that brings finance-related customer workflows into one place.',
+    features: ['Customer relationship management', 'Finance workflows', 'CRM dashboard'],
+    stack: ['Finance', 'CRM'],
+    thumbnail: '/assets/finance-crm-preview.svg',
+    projectUrl: 'https://finance-crm-server.onrender.com',
+  },
+  {
+    id: 'portfolio-multi-vendor-ecommerce',
+    slug: 'multi-vendor-ecommerce',
+    title: 'Multi-Vendor Ecommerce',
+    category: 'Business Applications',
+    shortDescription: 'A multi-vendor marketplace for customers to shop and manage their orders.',
+    description: 'An ecommerce marketplace that brings customer shopping, order tracking, wishlists, and account management into one workspace.',
+    problemStatement: 'Customers need a convenient way to shop from multiple vendors and manage their purchases in one place.',
+    proposedSolution: 'A multi-vendor storefront with a customer workspace for orders, saved products, cart, addresses, and profile settings.',
+    features: ['Multi-vendor marketplace', 'Order tracking', 'Wishlist and cart', 'Customer account dashboard'],
+    stack: ['Ecommerce', 'Marketplace'],
+    thumbnail: '/assets/multi-vendor-ecommerce-preview.png',
+    projectUrl: 'https://multi-vendor-client-6nas.onrender.com',
+  },
 ];
 
-const portfolioCategory = { id: 'ai', slug: 'ai', name: 'AI' };
+const portfolioCategories = [
+  { id: 'ai', slug: 'ai', name: 'AI' },
+  { id: 'business-applications', slug: 'business-applications', name: 'Business Applications' },
+];
 const findProjectBySlug = (slug) => portfolioProjects.find((project) => project.slug === slug) || null;
 
 
@@ -267,7 +312,7 @@ function Header({ settings }) {
 function HomePage({ settings }) {
   const [projects] = useState(portfolioProjects);
   const [services, setServices] = useState(fallbackServices);
-  const [projectCategories] = useState([portfolioCategory]);
+  const [projectCategories] = useState(portfolioCategories);
   const [testimonials, setTestimonials] = useState(fallbackTestimonials);
   const [contentError, setContentError] = useState('');
   const [contentLoading, setContentLoading] = useState(true);
@@ -577,7 +622,7 @@ function ServicesPage() {
 
 function ProjectsPage() {
   const projects = portfolioProjects;
-  const projectCategories = [portfolioCategory];
+  const projectCategories = portfolioCategories;
   const [selectedCategory, setSelectedCategory] = useState('All Projects');
 
   const filtered = selectedCategory === 'All Projects' ? projects : projects.filter((project) => project.category === selectedCategory);
