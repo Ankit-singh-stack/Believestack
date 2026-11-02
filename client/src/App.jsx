@@ -102,6 +102,20 @@ const portfolioProjects = [
     thumbnail: '/assets/finance-crm-preview.svg',
     projectUrl: 'https://finance-crm-server.onrender.com',
   },
+  {
+    id: 'portfolio-multi-vendor-ecommerce',
+    slug: 'multi-vendor-ecommerce',
+    title: 'Multi-Vendor Ecommerce',
+    category: 'Business Applications',
+    shortDescription: 'A multi-vendor marketplace for customers to shop and manage their orders.',
+    description: 'An ecommerce marketplace that brings customer shopping, order tracking, wishlists, and account management into one workspace.',
+    problemStatement: 'Customers need a convenient way to shop from multiple vendors and manage their purchases in one place.',
+    proposedSolution: 'A multi-vendor storefront with a customer workspace for orders, saved products, cart, addresses, and profile settings.',
+    features: ['Multi-vendor marketplace', 'Order tracking', 'Wishlist and cart', 'Customer account dashboard'],
+    stack: ['Ecommerce', 'Marketplace'],
+    thumbnail: '/assets/multi-vendor-ecommerce-preview.png',
+    projectUrl: 'https://multi-vendor-client-6nas.onrender.com',
+  },
 ];
 
 const portfolioCategory = { id: 'business-applications', slug: 'business-applications', name: 'Business Applications' };
