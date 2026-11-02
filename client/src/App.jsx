@@ -66,127 +66,25 @@ const benefitItems = [
   'Maintainable architecture',
 ];
 
-const fallbackProjectCategories = [
-  { id: 1, name: 'Full Stack' },
-  { id: 2, name: 'AI' },
-  { id: 3, name: 'Machine Learning' },
-  { id: 4, name: 'Final Year' },
-];
-
 const portfolioProjects = [
   {
-    id: 'portfolio-hr-portal',
-    slug: 'hr-portal',
-    title: 'HR Portal',
-    category: 'Business Applications',
-    shortDescription: 'An employee portal for attendance, leave applications, payments, and documents.',
-    description: 'An employee self-service portal that brings everyday HR tools together in one dashboard.',
-    problemStatement: 'Employees need a convenient place to access common workplace services and manage requests.',
-    proposedSolution: 'A centralized HR portal for employee information, attendance, leave, payments, and documents.',
-    features: ['Attendance tracking', 'Leave applications', 'Payment information', 'Employee documents'],
-    stack: ['HR Management', 'Employee Portal'],
-    thumbnail: '/assets/hr-portal-preview.png',
-    projectUrl: 'https://hrportal-client.onrender.com',
-  },
-  {
-    id: 'portfolio-finance-crm',
-    slug: 'finance-crm',
-    title: 'Finance CRM',
-    category: 'Business Applications',
-    shortDescription: 'A finance-focused CRM for managing customer relationships and finance workflows.',
-    description: 'A customer relationship management application built for finance-focused workflows.',
-    problemStatement: 'Finance teams need a clear workspace for organizing customer relationships and related workflows.',
-    proposedSolution: 'A dedicated CRM interface that brings finance-related customer workflows into one place.',
-    features: ['Customer relationship management', 'Finance workflows', 'CRM dashboard'],
-    stack: ['Finance', 'CRM'],
-    thumbnail: '/assets/finance-crm-preview.svg',
-    projectUrl: 'https://finance-crm-server.onrender.com',
-  },
-  {
-    id: 'portfolio-multi-vendor-ecommerce',
-    slug: 'multi-vendor-ecommerce',
-    title: 'Multi-Vendor Ecommerce',
-    category: 'Business Applications',
-    shortDescription: 'A multi-vendor marketplace for customers to shop and manage their orders.',
-    description: 'An ecommerce marketplace that brings customer shopping, order tracking, wishlists, and account management into one workspace.',
-    problemStatement: 'Customers need a convenient way to shop from multiple vendors and manage their purchases in one place.',
-    proposedSolution: 'A multi-vendor storefront with a customer workspace for orders, saved products, cart, addresses, and profile settings.',
-    features: ['Multi-vendor marketplace', 'Order tracking', 'Wishlist and cart', 'Customer account dashboard'],
-    stack: ['Ecommerce', 'Marketplace'],
-    thumbnail: '/assets/multi-vendor-ecommerce-preview.png',
-    projectUrl: 'https://multi-vendor-client-6nas.onrender.com',
-  },
-];
-
-const portfolioCategory = { id: 'business-applications', slug: 'business-applications', name: 'Business Applications' };
-const withPortfolioProjects = (projects) => {
-  const portfolioSlugs = new Set(portfolioProjects.map((project) => project.slug));
-  return [...portfolioProjects, ...projects.filter((project) => !portfolioSlugs.has(project.slug))];
-};
-const findProjectBySlug = (slug, projectList = []) => {
-  const catalog = withPortfolioProjects(projectList);
-  return catalog.find((project) => project.slug === slug) || null;
-};
-const withPortfolioCategory = (categories) => (
-  categories.some((category) => category.slug === portfolioCategory.slug || category.name === portfolioCategory.name)
-    ? categories
-    : [...categories, portfolioCategory]
-);
-
-const fallbackProjects = [
-  {
-    id: 1,
-    slug: 'smart-study-planner',
-    title: 'Smart Study Planner',
-    category: 'Full Stack',
-    shortDescription: 'An academic planning dashboard for students to organize classes, tasks, and revision schedules.',
-    description: 'This learning companion helps students plan assignments, track deadlines, and manage workloads through a clean dashboard that keeps daily study goals visible and actionable.',
-    problemStatement: 'Students often struggle to balance coursework, deadlines, and revision cycles without a centralized system.',
-    proposedSolution: 'A full-stack dashboard that combines a planner, task tracking, and analytics to keep student schedules organized and manageable.',
-    features: ['Task tracking', 'Assignment calendar', 'Performance insights', 'Team reminders'],
-    stack: ['React', 'Node.js', 'MongoDB'],
-    thumbnail: '',
-  },
-  {
-    id: 2,
-    slug: 'ai-campus-assistant',
-    title: 'AI Campus Assistant',
+    id: 'portfolio-worksync-ai',
+    slug: 'ai-project-management-collaboration-tool',
+    title: 'AI Project Management & Collaboration Tool',
     category: 'AI',
-    shortDescription: 'A conversational support app that answers common student and admin queries using AI-driven workflows.',
-    description: 'The project includes a smart assistant for college services such as approvals, FAQs, and guidance routing, making support more accessible and faster.',
-    problemStatement: 'Students and staff often need quick answers but are limited by office hours and fragmented guidance sources.',
-    proposedSolution: 'An AI-powered assistant that delivers contextual responses and routes requests to the correct workflow or team.',
-    features: ['FAQ automation', 'Chat-based support', 'Query routing', 'Smart recommendations'],
-    stack: ['React', 'Express.js', 'Python', 'OpenAI'],
-    thumbnail: '',
-  },
-  {
-    id: 3,
-    slug: 'fraud-detection-analytics',
-    title: 'Fraud Detection Analytics',
-    category: 'Machine Learning',
-    shortDescription: 'A predictive dashboard for identifying unusual patterns and risk signals using machine learning.',
-    description: 'This product demonstrates how data analytics and ML workflows can help teams detect suspicious activity and monitor trends over time.',
-    problemStatement: 'Operational teams need a clearer way to detect irregular patterns before they become costly issues.',
-    proposedSolution: 'A machine-learning-powered analytics dashboard that surfaces unusual activity and enables faster investigation.',
-    features: ['Risk scoring', 'Anomaly detection', 'Cohort analysis', 'Reporting dashboard'],
-    stack: ['Python', 'Machine Learning', 'MongoDB', 'React'],
-    thumbnail: '',
-  },
-  {
-    id: 4,
-    slug: 'startup-portfolio-platform',
-    title: 'Startup Portfolio Platform',
-    category: 'Final Year',
-    shortDescription: 'A modern portfolio and client case-study platform for founders and service businesses.',
-    description: 'The platform helps startups present products, showcase success stories, and organize work samples in a polished digital experience.',
-    problemStatement: 'Small businesses and startups need a professional platform to communicate value and highlight their work online.',
-    proposedSolution: 'A portfolio platform with sections for projects, services, case studies, and business messaging tailored for digital brand building.',
-    features: ['Portfolio sections', 'Client showcase', 'Services overview', 'Lead generation flow'],
-    stack: ['React', 'Node.js', 'REST APIs', 'MongoDB'],
-    thumbnail: '',
+    shortDescription: 'An AI-powered workspace that brings projects, tasks, teams, chat, calendars, and analytics together.',
+    description: 'WorkSync AI brings projects, tasks, teams, chat, calendars, and analytics into one workspace, with an AI assistant that turns ideas into actionable plans.',
+    problemStatement: 'Teams need a clear, shared workspace to coordinate projects, tasks, communication, and deadlines.',
+    proposedSolution: 'An AI-powered project management platform that centralizes team collaboration and turns ideas into actionable plans.',
+    features: ['Project and task tracking', 'Team collaboration and chat', 'Calendar and analytics', 'AI-generated actionable plans'],
+    stack: ['AI', 'Project Management', 'Team Collaboration'],
+    thumbnail: '/assets/worksync-ai-preview.png',
+    projectUrl: 'https://ai-project-management-collaboration-tool.onrender.com',
   },
 ];
+
+const portfolioCategory = { id: 'ai', slug: 'ai', name: 'AI' };
+const findProjectBySlug = (slug) => portfolioProjects.find((project) => project.slug === slug) || null;
 
 
 const fallbackServices = [
@@ -367,9 +265,9 @@ function Header({ settings }) {
 }
 
 function HomePage({ settings }) {
-  const [projects, setProjects] = useState(() => withPortfolioProjects(fallbackProjects));
+  const [projects] = useState(portfolioProjects);
   const [services, setServices] = useState(fallbackServices);
-  const [projectCategories, setProjectCategories] = useState(() => withPortfolioCategory(fallbackProjectCategories));
+  const [projectCategories] = useState([portfolioCategory]);
   const [testimonials, setTestimonials] = useState(fallbackTestimonials);
   const [contentError, setContentError] = useState('');
   const [contentLoading, setContentLoading] = useState(true);
@@ -378,20 +276,14 @@ function HomePage({ settings }) {
   useEffect(() => {
     let active = true;
     Promise.allSettled([
-      api.get('/api/projects?limit=100'),
-      api.get('/api/project-categories'),
       api.get('/api/services'),
       api.get('/api/testimonials'),
     ]).then((results) => {
       if (!active) return;
-      const [projectResult, categoryResult, serviceResult, testimonialResult] = results;
-      const nextProjects = withPortfolioProjects(projectResult.status === 'fulfilled' && Array.isArray(projectResult.value.data.projects) && projectResult.value.data.projects.length ? projectResult.value.data.projects : fallbackProjects);
-      const nextCategories = withPortfolioCategory(categoryResult.status === 'fulfilled' && Array.isArray(categoryResult.value.data.categories) && categoryResult.value.data.categories.length ? categoryResult.value.data.categories : fallbackProjectCategories);
+      const [serviceResult, testimonialResult] = results;
       const nextServices = serviceResult.status === 'fulfilled' && Array.isArray(serviceResult.value.data.services) && serviceResult.value.data.services.length ? serviceResult.value.data.services : fallbackServices;
       const nextTestimonials = testimonialResult.status === 'fulfilled' && Array.isArray(testimonialResult.value.data.testimonials) && testimonialResult.value.data.testimonials.length ? testimonialResult.value.data.testimonials : fallbackTestimonials;
 
-      setProjects(nextProjects);
-      setProjectCategories(nextCategories);
       setServices(nextServices);
       setTestimonials(nextTestimonials);
 
@@ -684,25 +576,9 @@ function ServicesPage() {
 }
 
 function ProjectsPage() {
-  const [projects, setProjects] = useState(() => withPortfolioProjects(fallbackProjects));
-  const [projectCategories, setProjectCategories] = useState(() => withPortfolioCategory(fallbackProjectCategories));
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(true);
+  const projects = portfolioProjects;
+  const projectCategories = [portfolioCategory];
   const [selectedCategory, setSelectedCategory] = useState('All Projects');
-
-  useEffect(() => {
-    Promise.all([api.get('/api/projects?limit=100'), api.get('/api/project-categories')])
-      .then(([projectResponse, categoryResponse]) => {
-        setProjects(withPortfolioProjects(Array.isArray(projectResponse.data.projects) && projectResponse.data.projects.length ? projectResponse.data.projects : fallbackProjects));
-        setProjectCategories(withPortfolioCategory(Array.isArray(categoryResponse.data.categories) && categoryResponse.data.categories.length ? categoryResponse.data.categories : fallbackProjectCategories));
-      })
-      .catch((requestError) => {
-        setProjects(withPortfolioProjects(fallbackProjects));
-        setProjectCategories(withPortfolioCategory(fallbackProjectCategories));
-        setError(requestError.response?.data?.message || 'Unable to load projects. Showing preview examples instead.');
-      })
-      .finally(() => setLoading(false));
-  }, []);
 
   const filtered = selectedCategory === 'All Projects' ? projects : projects.filter((project) => project.category === selectedCategory);
 
@@ -718,38 +594,14 @@ function ProjectsPage() {
         <div className="project-grid">
           {filtered.map((project) => <ProjectCard key={project.slug} project={project} />)}
         </div>
-        {loading && <p role="status">Loading projects...</p>}
-        {error && <p className="form-message error" role="alert">{error}</p>}
-        {!loading && !error && !filtered.length && <p className="empty-state">{projects.length ? 'No projects match this category yet.' : 'Project examples are being updated. Contact us to discuss your idea.'}</p>}
+        {!filtered.length && <p className="empty-state">No projects match this category yet.</p>}
       </div>
     </section>
   );
 }
 
 function ExperiencePage() {
-  const [projects, setProjects] = useState(() => withPortfolioProjects(fallbackProjects.slice(0, 3)));
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    let active = true;
-    api.get('/api/projects?limit=3')
-      .then((response) => {
-        if (!active) return;
-        const projectList = response.data.projects;
-        setProjects(withPortfolioProjects(Array.isArray(projectList) && projectList.length ? projectList : fallbackProjects.slice(0, 3)));
-      })
-      .catch((requestError) => {
-        if (!active) return;
-        setProjects(withPortfolioProjects(fallbackProjects.slice(0, 3)));
-        setError(requestError.response?.data?.message || 'Unable to load recent projects. Showing preview examples instead.');
-      })
-      .finally(() => {
-        if (active) setLoading(false);
-      });
-
-    return () => { active = false; };
-  }, []);
+  const projects = portfolioProjects;
 
   return (
     <section className="page-shell experience-page">
@@ -781,9 +633,6 @@ function ExperiencePage() {
           <div className="project-grid">
             {projects.map((project) => <ProjectCard key={project.slug} project={project} />)}
           </div>
-          {loading && <p role="status">Loading projects...</p>}
-          {error && <p className="form-message error" role="alert">{error}</p>}
-          {!loading && !error && !projects.length && <p className="empty-state">Projects are being updated. <Link to="/contact">Tell us what you want to build.</Link></p>}
           <div className="section-action">
             <Link to="/projects" className="btn btn-secondary">View all projects <ArrowRight size={18} /></Link>
           </div>
@@ -832,7 +681,7 @@ function ProjectCard({ project }) {
 function ProjectDetailPage() {
   const { slug } = useParams();
   const [result, setResult] = useState({ slug: '', project: null, error: '', loading: true });
-  const fallbackProject = findProjectBySlug(slug, fallbackProjects);
+  const fallbackProject = findProjectBySlug(slug);
 
   useEffect(() => {
     let active = true;
@@ -850,7 +699,7 @@ function ProjectDetailPage() {
         setResult({ slug, project: null, error, loading: false });
       });
     return () => { active = false; };
-  }, [slug]);
+  }, [fallbackProject, slug]);
 
   if (result.slug !== slug || result.loading) {
     return <section className="page-shell"><div className="container"><p role="status">Loading project...</p></div></section>;
